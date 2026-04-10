@@ -9,11 +9,12 @@ import {
 	sandboxTable,
 	snapshotTable
 } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 import { parseIntParam } from '$lib/server/route-params';
 
 export const getSandboxDetail = query(async () => {
-	const sandboxId = parseIntParam(getRequestEvent().params.sandboxId, 'sandboxId');
-
+	const event = getRequestEvent();
+	const sandboxId = parseIntParam(event.params.sandboxId, 'sandboxId');
 	const [sandboxRows, linkedImages, latestRuns, snapshotRows] = await Promise.all([
 		db
 			.select({
@@ -27,31 +28,53 @@ export const getSandboxDetail = query(async () => {
 			.from(sandboxTable)
 			.where(eq(sandboxTable.id, sandboxId))
 			.limit(1),
-		db
-			.select({
-				sandboxImageId: sandboxImageTable.id,
-				imageId: imageTable.id,
+		Pagination.fromSearchParams(event.url.searchParams, {
+			namespace: 'images',
+			query: db
+				.select({
+					sandboxImageId: sandboxImageTable.id,
+					imageId: imageTable.id,
+					imageReference: imageTable.reference,
+					manifestDigest: sandboxImageTable.manifestDigest,
+					createdAt: sandboxImageTable.createdAt
+				})
+				.from(sandboxImageTable)
+				.innerJoin(imageTable, eq(imageTable.id, sandboxImageTable.imageId))
+				.where(eq(sandboxImageTable.sandboxId, sandboxId)),
+			sorts: {
 				imageReference: imageTable.reference,
 				manifestDigest: sandboxImageTable.manifestDigest,
 				createdAt: sandboxImageTable.createdAt
-			})
-			.from(sandboxImageTable)
-			.innerJoin(imageTable, eq(imageTable.id, sandboxImageTable.imageId))
-			.where(eq(sandboxImageTable.sandboxId, sandboxId))
-			.orderBy(desc(sandboxImageTable.id)),
-		db
-			.select({
+			},
+			defaultSortBy: 'createdAt',
+			defaultSortDir: 'desc',
+			tieBreaker: sandboxImageTable.id
+		}),
+		Pagination.fromSearchParams(event.url.searchParams, {
+			namespace: 'runs',
+			query: db
+				.select({
+					id: runTable.id,
+					status: runTable.status,
+					exitCode: runTable.exitCode,
+					terminationReason: runTable.terminationReason,
+					startedAt: runTable.startedAt,
+					terminatedAt: runTable.terminatedAt
+				})
+				.from(runTable)
+				.where(eq(runTable.sandboxId, sandboxId)),
+			sorts: {
 				id: runTable.id,
 				status: runTable.status,
 				exitCode: runTable.exitCode,
 				terminationReason: runTable.terminationReason,
 				startedAt: runTable.startedAt,
 				terminatedAt: runTable.terminatedAt
-			})
-			.from(runTable)
-			.where(eq(runTable.sandboxId, sandboxId))
-			.orderBy(desc(runTable.startedAt), desc(runTable.id))
-			.limit(10),
+			},
+			defaultSortBy: 'startedAt',
+			defaultSortDir: 'desc',
+			tieBreaker: runTable.id
+		}),
 		db
 			.select({
 				id: snapshotTable.id,

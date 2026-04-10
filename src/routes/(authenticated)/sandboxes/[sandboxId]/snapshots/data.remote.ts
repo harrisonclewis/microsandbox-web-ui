@@ -1,11 +1,12 @@
 import { getRequestEvent, query } from '$app/server';
-import { desc, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db, sandboxTable, snapshotTable } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 import { parseIntParam } from '$lib/server/route-params';
 
 export const getSandboxSnapshots = query(async () => {
-	const sandboxId = parseIntParam(getRequestEvent().params.sandboxId, 'sandboxId');
-
+	const event = getRequestEvent();
+	const sandboxId = parseIntParam(event.params.sandboxId, 'sandboxId');
 	const [sandboxRows, snapshots] = await Promise.all([
 		db
 			.select({
@@ -16,17 +17,28 @@ export const getSandboxSnapshots = query(async () => {
 			.from(sandboxTable)
 			.where(eq(sandboxTable.id, sandboxId))
 			.limit(1),
-		db
-			.select({
-				id: snapshotTable.id,
+		Pagination.fromSearchParams(event.url.searchParams, {
+			namespace: 'snapshots',
+			query: db
+				.select({
+					id: snapshotTable.id,
+					name: snapshotTable.name,
+					description: snapshotTable.description,
+					sizeBytes: snapshotTable.sizeBytes,
+					createdAt: snapshotTable.createdAt
+				})
+				.from(snapshotTable)
+				.where(eq(snapshotTable.sandboxId, sandboxId)),
+			sorts: {
 				name: snapshotTable.name,
 				description: snapshotTable.description,
 				sizeBytes: snapshotTable.sizeBytes,
 				createdAt: snapshotTable.createdAt
-			})
-			.from(snapshotTable)
-			.where(eq(snapshotTable.sandboxId, sandboxId))
-			.orderBy(desc(snapshotTable.createdAt), desc(snapshotTable.id))
+			},
+			defaultSortBy: 'createdAt',
+			defaultSortDir: 'desc',
+			tieBreaker: snapshotTable.id
+		})
 	]);
 
 	return {

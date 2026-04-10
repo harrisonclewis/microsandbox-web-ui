@@ -1,10 +1,14 @@
-import { query } from '$app/server';
-import { desc, eq } from 'drizzle-orm';
+import { getRequestEvent, query } from '$app/server';
+import { eq } from 'drizzle-orm';
 import { db, sandboxTable, snapshotTable } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 
 export const getSnapshots = query(async () => {
-	return db
-		.select({
+	const event = getRequestEvent();
+	return Pagination.fromSearchParams(event.url.searchParams, {
+		namespace: 'snapshots',
+		query: db
+			.select({
 			id: snapshotTable.id,
 			name: snapshotTable.name,
 			sandboxId: snapshotTable.sandboxId,
@@ -13,7 +17,16 @@ export const getSnapshots = query(async () => {
 			sizeBytes: snapshotTable.sizeBytes,
 			createdAt: snapshotTable.createdAt
 		})
-		.from(snapshotTable)
-		.leftJoin(sandboxTable, eq(sandboxTable.id, snapshotTable.sandboxId))
-		.orderBy(desc(snapshotTable.createdAt), desc(snapshotTable.id));
+			.from(snapshotTable)
+			.leftJoin(sandboxTable, eq(sandboxTable.id, snapshotTable.sandboxId)),
+		sorts: {
+			name: snapshotTable.name,
+			sandboxName: sandboxTable.name,
+			sizeBytes: snapshotTable.sizeBytes,
+			createdAt: snapshotTable.createdAt
+		},
+		defaultSortBy: 'createdAt',
+		defaultSortDir: 'desc',
+		tieBreaker: snapshotTable.id
+	});
 });

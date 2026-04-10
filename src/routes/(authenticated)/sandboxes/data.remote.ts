@@ -1,16 +1,28 @@
-import { query } from '$app/server';
-import { asc } from 'drizzle-orm';
+import { getRequestEvent, query } from '$app/server';
 import { db, sandboxTable } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 
 export const getSandboxes = query(async () => {
-	return db
-		.select({
+	const event = getRequestEvent();
+	return Pagination.fromSearchParams(event.url.searchParams, {
+		namespace: 'sandboxes',
+		query: db.select({
 			id: sandboxTable.id,
 			name: sandboxTable.name,
 			status: sandboxTable.status,
 			createdAt: sandboxTable.createdAt,
 			updatedAt: sandboxTable.updatedAt
 		})
-		.from(sandboxTable)
-		.orderBy(asc(sandboxTable.name), asc(sandboxTable.id));
+		.from(sandboxTable),
+		sorts: {
+			id: sandboxTable.id,
+			name: sandboxTable.name,
+			status: sandboxTable.status,
+			createdAt: sandboxTable.createdAt,
+			updatedAt: sandboxTable.updatedAt
+		},
+		defaultSortBy: 'name',
+		defaultSortDir: 'asc',
+		tieBreaker: sandboxTable.id
+	});
 });

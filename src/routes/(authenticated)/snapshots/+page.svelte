@@ -1,7 +1,34 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getSnapshots } from './data.remote';
 
 	const snapshots = getSnapshots();
+	const snapshotColumns = [
+		{
+			key: 'name',
+			label: 'Name',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/snapshots/${row.id}`
+		},
+		{
+			key: 'sandboxName',
+			label: 'Sandbox',
+			sortable: true,
+			type: 'link',
+			text: (row: any) => row.sandboxName ?? `Sandbox #${row.sandboxId}`,
+			href: (row: any) => `/sandboxes/${row.sandboxId}`,
+			empty: 'n/a'
+		},
+		{ key: 'sizeBytes', label: 'Size Bytes', sortable: true, empty: '0' },
+		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
+	];
+	const snapshotData = $derived(
+		(snapshots.current?.data ?? []).map((snapshot) => ({
+			...snapshot,
+			sandboxName: snapshot.sandboxId ? snapshot.sandboxName : null
+		}))
+	);
 </script>
 
 <svelte:head>
@@ -16,33 +43,18 @@
 	<p>Loading snapshots...</p>
 {:else if !snapshots.current}
 	<p>No snapshot payload returned.</p>
-{:else if snapshots.current.length === 0}
+{:else if snapshots.current.data.length === 0}
 	<p>No snapshots found.</p>
 {:else}
-	<table>
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Sandbox</th>
-				<th>Size Bytes</th>
-				<th>Created</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each snapshots.current as snapshot}
-				<tr>
-					<td><a href={`/snapshots/${snapshot.id}`}>{snapshot.name}</a></td>
-					<td>
-						{#if snapshot.sandboxId}
-							<a href={`/sandboxes/${snapshot.sandboxId}`}>{snapshot.sandboxName ?? `Sandbox #${snapshot.sandboxId}`}</a>
-						{:else}
-							n/a
-						{/if}
-					</td>
-					<td>{snapshot.sizeBytes ?? 0}</td>
-					<td>{snapshot.createdAt ?? 'n/a'}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<DataTable
+		namespace="snapshots"
+		data={snapshotData}
+		columns={snapshotColumns}
+		currentSortBy={snapshots.current.sortBy}
+		currentSortDir={snapshots.current.sortDir}
+		defaultSortBy="createdAt"
+		defaultSortDir="desc"
+		currentPage={snapshots.current.page}
+		totalPages={snapshots.current.totalPages}
+	/>
 {/if}

@@ -1,7 +1,21 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getSandboxes } from './data.remote';
 
 	const sandboxes = getSandboxes();
+	const sandboxColumns = [
+		{ key: 'id', label: 'ID', sortable: true },
+		{
+			key: 'name',
+			label: 'Name',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/sandboxes/${row.id}`
+		},
+		{ key: 'status', label: 'Status', sortable: true, type: 'status' },
+		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' },
+		{ key: 'updatedAt', label: 'Updated', sortable: true, type: 'date' }
+	];
 </script>
 
 <svelte:head>
@@ -17,29 +31,18 @@
 	<p>Loading sandboxes...</p>
 {:else if !sandboxes.current}
 	<p>No sandbox payload returned.</p>
-{:else if sandboxes.current.length === 0}
+{:else if sandboxes.current.data.length === 0}
 	<p>No sandboxes found.</p>
 {:else}
-	<table>
-		<thead>
-			<tr>
-				<th>ID</th>
-				<th>Name</th>
-				<th>Status</th>
-				<th>Created</th>
-				<th>Updated</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each sandboxes.current as sandbox}
-				<tr>
-					<td>{sandbox.id}</td>
-					<td><a href={`/sandboxes/${sandbox.id}`}>{sandbox.name}</a></td>
-					<td>{sandbox.status}</td>
-					<td>{sandbox.createdAt ?? 'n/a'}</td>
-					<td>{sandbox.updatedAt ?? 'n/a'}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<DataTable
+		namespace="sandboxes"
+		data={sandboxes.current.data}
+		columns={sandboxColumns}
+		currentSortBy={sandboxes.current.sortBy}
+		currentSortDir={sandboxes.current.sortDir}
+		defaultSortBy="name"
+		defaultSortDir="asc"
+		currentPage={sandboxes.current.page}
+		totalPages={sandboxes.current.totalPages}
+	/>
 {/if}

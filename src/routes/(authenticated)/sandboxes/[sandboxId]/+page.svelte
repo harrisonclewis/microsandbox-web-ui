@@ -1,7 +1,34 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getSandboxDetail } from './data.remote';
 
 	const detail = getSandboxDetail();
+	const linkedImageColumns = [
+		{
+			key: 'imageReference',
+			label: 'Image',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/images/${row.imageId}`
+		},
+		{ key: 'manifestDigest', label: 'Manifest Digest', sortable: true },
+		{ key: 'createdAt', label: 'Linked At', sortable: true, type: 'date' }
+	];
+	const latestRunColumns = [
+		{
+			key: 'id',
+			label: 'Run',
+			sortable: true,
+			type: 'link',
+			text: (row: any) => `Run #${row.id}`,
+			href: (row: any) => `/sandboxes/${detail.current?.sandbox.id}/runs/${row.id}`
+		},
+		{ key: 'status', label: 'Status', sortable: true, type: 'status' },
+		{ key: 'exitCode', label: 'Exit', sortable: true, empty: 'n/a' },
+		{ key: 'terminationReason', label: 'Reason', sortable: true, empty: 'n/a' },
+		{ key: 'startedAt', label: 'Started', sortable: true, type: 'date' },
+		{ key: 'terminatedAt', label: 'Ended', sortable: true, type: 'date' }
+	];
 </script>
 
 <svelte:head>
@@ -40,59 +67,39 @@
 
 	<section>
 		<h2>Linked Images</h2>
-		{#if detail.current.linkedImages.length === 0}
+		{#if detail.current.linkedImages.data.length === 0}
 			<p>No linked images.</p>
 		{:else}
-			<table>
-				<thead>
-					<tr>
-						<th>Image</th>
-						<th>Manifest Digest</th>
-						<th>Linked At</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each detail.current.linkedImages as image}
-						<tr>
-							<td><a href={`/images/${image.imageId}`}>{image.imageReference}</a></td>
-							<td>{image.manifestDigest}</td>
-							<td>{image.createdAt ?? 'n/a'}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+			<DataTable
+				namespace="images"
+				data={detail.current.linkedImages.data}
+				columns={linkedImageColumns}
+				currentSortBy={detail.current.linkedImages.sortBy}
+				currentSortDir={detail.current.linkedImages.sortDir}
+				defaultSortBy="createdAt"
+				defaultSortDir="desc"
+				currentPage={detail.current.linkedImages.page}
+				totalPages={detail.current.linkedImages.totalPages}
+			/>
 		{/if}
 	</section>
 
 	<section>
 		<h2>Recent Runs</h2>
-		{#if detail.current.latestRuns.length === 0}
+		{#if detail.current.latestRuns.data.length === 0}
 			<p>No runs recorded.</p>
 		{:else}
-			<table>
-				<thead>
-					<tr>
-						<th>Run</th>
-						<th>Status</th>
-						<th>Exit</th>
-						<th>Reason</th>
-						<th>Started</th>
-						<th>Ended</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each detail.current.latestRuns as run}
-						<tr>
-							<td><a href={`/sandboxes/${detail.current.sandbox.id}/runs/${run.id}`}>Run #{run.id}</a></td>
-							<td>{run.status}</td>
-							<td>{run.exitCode ?? 'n/a'}</td>
-							<td>{run.terminationReason ?? 'n/a'}</td>
-							<td>{run.startedAt ?? 'n/a'}</td>
-							<td>{run.terminatedAt ?? 'n/a'}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+			<DataTable
+				namespace="runs"
+				data={detail.current.latestRuns.data}
+				columns={latestRunColumns}
+				currentSortBy={detail.current.latestRuns.sortBy}
+				currentSortDir={detail.current.latestRuns.sortDir}
+				defaultSortBy="startedAt"
+				defaultSortDir="desc"
+				currentPage={detail.current.latestRuns.page}
+				totalPages={detail.current.latestRuns.totalPages}
+			/>
 		{/if}
 	</section>
 

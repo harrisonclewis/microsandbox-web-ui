@@ -1,7 +1,20 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getSandboxSnapshots } from './data.remote';
 
 	const snapshots = getSandboxSnapshots();
+	const snapshotColumns = [
+		{
+			key: 'name',
+			label: 'Name',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/snapshots/${row.id}`
+		},
+		{ key: 'description', label: 'Description', sortable: true, empty: 'n/a' },
+		{ key: 'sizeBytes', label: 'Size Bytes', sortable: true, empty: '0' },
+		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
+	];
 </script>
 
 <svelte:head>
@@ -22,28 +35,19 @@
 	<p>Sandbox: <a href={`/sandboxes/${snapshots.current.sandbox.id}`}>{snapshots.current.sandbox.name}</a></p>
 	<p>Status: {snapshots.current.sandbox.status}</p>
 
-	{#if snapshots.current.snapshots.length === 0}
+	{#if snapshots.current.snapshots.data.length === 0}
 		<p>No snapshots found.</p>
 	{:else}
-		<table>
-			<thead>
-				<tr>
-					<th>Name</th>
-					<th>Description</th>
-					<th>Size Bytes</th>
-					<th>Created</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each snapshots.current.snapshots as snapshot}
-					<tr>
-						<td><a href={`/snapshots/${snapshot.id}`}>{snapshot.name}</a></td>
-						<td>{snapshot.description ?? 'n/a'}</td>
-						<td>{snapshot.sizeBytes ?? 0}</td>
-						<td>{snapshot.createdAt ?? 'n/a'}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+		<DataTable
+			namespace="snapshots"
+			data={snapshots.current.snapshots.data}
+			columns={snapshotColumns}
+			currentSortBy={snapshots.current.snapshots.sortBy}
+			currentSortDir={snapshots.current.snapshots.sortDir}
+			defaultSortBy="createdAt"
+			defaultSortDir="desc"
+			currentPage={snapshots.current.snapshots.page}
+			totalPages={snapshots.current.snapshots.totalPages}
+		/>
 	{/if}
 {/if}

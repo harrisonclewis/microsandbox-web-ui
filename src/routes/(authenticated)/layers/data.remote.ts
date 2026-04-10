@@ -1,10 +1,12 @@
-import { query } from '$app/server';
-import { asc } from 'drizzle-orm';
+import { getRequestEvent, query } from '$app/server';
 import { db, layerTable } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 
 export const getLayers = query(async () => {
-	return db
-		.select({
+	const event = getRequestEvent();
+	return Pagination.fromSearchParams(event.url.searchParams, {
+		namespace: 'layers',
+		query: db.select({
 			id: layerTable.id,
 			digest: layerTable.digest,
 			diffId: layerTable.diffId,
@@ -12,6 +14,17 @@ export const getLayers = query(async () => {
 			sizeBytes: layerTable.sizeBytes,
 			createdAt: layerTable.createdAt
 		})
-		.from(layerTable)
-		.orderBy(asc(layerTable.id));
+		.from(layerTable),
+		sorts: {
+			id: layerTable.id,
+			digest: layerTable.digest,
+			diffId: layerTable.diffId,
+			mediaType: layerTable.mediaType,
+			sizeBytes: layerTable.sizeBytes,
+			createdAt: layerTable.createdAt
+		},
+		defaultSortBy: 'id',
+		defaultSortDir: 'asc',
+		tieBreaker: layerTable.id
+	});
 });

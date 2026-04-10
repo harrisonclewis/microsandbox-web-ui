@@ -1,10 +1,12 @@
-import { query } from '$app/server';
-import { asc } from 'drizzle-orm';
+import { getRequestEvent, query } from '$app/server';
 import { db, volumeTable } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 
 export const getVolumes = query(async () => {
-	return db
-		.select({
+	const event = getRequestEvent();
+	return Pagination.fromSearchParams(event.url.searchParams, {
+		namespace: 'volumes',
+		query: db.select({
 			id: volumeTable.id,
 			name: volumeTable.name,
 			quotaMib: volumeTable.quotaMib,
@@ -13,6 +15,15 @@ export const getVolumes = query(async () => {
 			createdAt: volumeTable.createdAt,
 			updatedAt: volumeTable.updatedAt
 		})
-		.from(volumeTable)
-		.orderBy(asc(volumeTable.name), asc(volumeTable.id));
+		.from(volumeTable),
+		sorts: {
+			name: volumeTable.name,
+			quotaMib: volumeTable.quotaMib,
+			sizeBytes: volumeTable.sizeBytes,
+			updatedAt: volumeTable.updatedAt
+		},
+		defaultSortBy: 'name',
+		defaultSortDir: 'asc',
+		tieBreaker: volumeTable.id
+	});
 });

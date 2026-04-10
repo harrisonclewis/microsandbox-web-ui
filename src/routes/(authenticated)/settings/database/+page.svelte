@@ -1,7 +1,12 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getDatabaseOverview } from './data.remote';
 
 	const overview = getDatabaseOverview();
+	const tableColumns = [
+		{ key: 'table', label: 'Table', sortable: true },
+		{ key: 'rows', label: 'Rows', sortable: true }
+	];
 </script>
 
 <svelte:head>
@@ -17,20 +22,15 @@
 {:else if !overview.current}
 	<p>No database overview payload returned.</p>
 {:else}
-	<table>
-		<thead>
-			<tr>
-				<th>Table</th>
-				<th>Rows</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each overview.current as table}
-				<tr>
-					<td>{table.table}</td>
-					<td>{table.rows}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<DataTable
+		namespace="tables"
+		data={overview.current.data}
+		columns={tableColumns}
+		currentSortBy={overview.current.sortBy}
+		currentSortDir={overview.current.sortDir}
+		defaultSortBy="table"
+		defaultSortDir="asc"
+		currentPage={overview.current.page}
+		totalPages={overview.current.totalPages}
+	/>
 {/if}

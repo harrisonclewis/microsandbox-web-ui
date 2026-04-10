@@ -1,7 +1,41 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getImageDetail } from './data.remote';
 
 	const detail = getImageDetail();
+	const indexColumns = [
+		{
+			key: 'id',
+			label: 'Index',
+			sortable: true,
+			type: 'link',
+			text: (row: any) => `Index #${row.id}`,
+			href: (row: any) => `/images/${detail.current?.image.id}/indexes/${row.id}`
+		},
+		{ key: 'mediaType', label: 'Media Type', sortable: true, empty: 'n/a' },
+		{ key: 'schemaVersion', label: 'Schema', sortable: true, empty: 'n/a' },
+		{
+			key: 'platform',
+			label: 'Platform',
+			value: (row: any) =>
+				`${row.platformOs ?? 'n/a'} / ${row.platformArch ?? 'n/a'} / ${row.platformVariant ?? 'n/a'}`
+		},
+		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
+	];
+	const manifestColumns = [
+		{
+			key: 'id',
+			label: 'Manifest',
+			sortable: true,
+			type: 'link',
+			text: (row: any) => `Manifest #${row.id}`,
+			href: (row: any) => `/images/${detail.current?.image.id}/manifests/${row.id}`
+		},
+		{ key: 'digest', label: 'Digest', sortable: true },
+		{ key: 'mediaType', label: 'Media Type', sortable: true, empty: 'n/a' },
+		{ key: 'schemaVersion', label: 'Schema', sortable: true, empty: 'n/a' },
+		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
+	];
 </script>
 
 <svelte:head>
@@ -38,61 +72,39 @@
 
 	<section>
 		<h2>Indexes</h2>
-		{#if detail.current.indexes.length === 0}
+		{#if detail.current.indexes.data.length === 0}
 			<p>No indexes found.</p>
 		{:else}
-			<table>
-				<thead>
-					<tr>
-						<th>Index</th>
-						<th>Media Type</th>
-						<th>Schema</th>
-						<th>Platform</th>
-						<th>Created</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each detail.current.indexes as index}
-						<tr>
-							<td><a href={`/images/${detail.current.image.id}/indexes/${index.id}`}>Index #{index.id}</a></td>
-							<td>{index.mediaType ?? 'n/a'}</td>
-							<td>{index.schemaVersion ?? 'n/a'}</td>
-							<td>{index.platformOs ?? 'n/a'} / {index.platformArch ?? 'n/a'} / {index.platformVariant ?? 'n/a'}</td>
-							<td>{index.createdAt ?? 'n/a'}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+			<DataTable
+				namespace="indexes"
+				data={detail.current.indexes.data}
+				columns={indexColumns}
+				currentSortBy={detail.current.indexes.sortBy}
+				currentSortDir={detail.current.indexes.sortDir}
+				defaultSortBy="createdAt"
+				defaultSortDir="desc"
+				currentPage={detail.current.indexes.page}
+				totalPages={detail.current.indexes.totalPages}
+			/>
 		{/if}
 	</section>
 
 	<section>
 		<h2>Recent Manifests</h2>
-		{#if detail.current.manifests.length === 0}
+		{#if detail.current.manifests.data.length === 0}
 			<p>No manifests found.</p>
 		{:else}
-			<table>
-				<thead>
-					<tr>
-						<th>Manifest</th>
-						<th>Digest</th>
-						<th>Media Type</th>
-						<th>Schema</th>
-						<th>Created</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each detail.current.manifests as manifest}
-						<tr>
-							<td><a href={`/images/${detail.current.image.id}/manifests/${manifest.id}`}>Manifest #{manifest.id}</a></td>
-							<td>{manifest.digest}</td>
-							<td>{manifest.mediaType ?? 'n/a'}</td>
-							<td>{manifest.schemaVersion ?? 'n/a'}</td>
-							<td>{manifest.createdAt ?? 'n/a'}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
+			<DataTable
+				namespace="manifests"
+				data={detail.current.manifests.data}
+				columns={manifestColumns}
+				currentSortBy={detail.current.manifests.sortBy}
+				currentSortDir={detail.current.manifests.sortDir}
+				defaultSortBy="createdAt"
+				defaultSortDir="desc"
+				currentPage={detail.current.manifests.page}
+				totalPages={detail.current.manifests.totalPages}
+			/>
 		{/if}
 	</section>
 {/if}

@@ -1,4 +1,4 @@
-import { query } from '$app/server';
+import { getRequestEvent, query } from '$app/server';
 import { count } from 'drizzle-orm';
 import {
 	configTable,
@@ -15,8 +15,10 @@ import {
 	snapshotTable,
 	volumeTable
 } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 
 export const getDatabaseOverview = query(async () => {
+	const event = getRequestEvent();
 	const countRows = await Promise.all([
 		db.select({ value: count() }).from(imageTable),
 		db.select({ value: count() }).from(indexTable),
@@ -32,7 +34,7 @@ export const getDatabaseOverview = query(async () => {
 		db.select({ value: count() }).from(volumeTable)
 	]);
 
-	return [
+	const rows = [
 		{ table: 'image', rows: countRows[0][0]?.value ?? 0 },
 		{ table: 'index', rows: countRows[1][0]?.value ?? 0 },
 		{ table: 'manifest', rows: countRows[2][0]?.value ?? 0 },
@@ -46,4 +48,21 @@ export const getDatabaseOverview = query(async () => {
 		{ table: 'snapshot', rows: countRows[10][0]?.value ?? 0 },
 		{ table: 'volume', rows: countRows[11][0]?.value ?? 0 }
 	];
+
+	return Pagination.fromArray(event.url.searchParams, {
+		namespace: 'tables',
+		data: rows,
+		allowedSortKeys: ['table', 'rows'] as const,
+		defaultSortBy: 'table',
+		defaultSortDir: 'asc',
+		sorter: (left, right, sortBy, sortDir) => {
+			if (sortBy === 'rows') {
+				return sortDir === 'desc' ? right.rows - left.rows : left.rows - right.rows;
+			}
+
+			return sortDir === 'desc'
+				? right.table.localeCompare(left.table)
+				: left.table.localeCompare(right.table);
+		}
+	});
 });

@@ -1,7 +1,32 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getActivity } from './data.remote';
 
 	const activity = getActivity();
+	const activityColumns = [
+		{
+			key: 'id',
+			label: 'Run',
+			sortable: true,
+			type: 'link',
+			text: (row: any) => `Run #${row.id}`,
+			href: (row: any) => `/sandboxes/${row.sandboxId}/runs/${row.id}`
+		},
+		{
+			key: 'sandboxName',
+			label: 'Sandbox',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/sandboxes/${row.sandboxId}`
+		},
+		{ key: 'status', label: 'Status', sortable: true, type: 'status' },
+		{ key: 'exitCode', label: 'Exit Code', sortable: true, empty: 'n/a' },
+		{ key: 'exitSignal', label: 'Signal', sortable: true, empty: 'n/a' },
+		{ key: 'terminationReason', label: 'Reason', sortable: true, empty: 'n/a' },
+		{ key: 'terminationDetail', label: 'Detail', sortable: true, empty: 'n/a' },
+		{ key: 'startedAt', label: 'Started', sortable: true, type: 'date' },
+		{ key: 'terminatedAt', label: 'Ended', sortable: true, type: 'date' }
+	];
 </script>
 
 <svelte:head>
@@ -17,37 +42,18 @@
 	<p>Loading activity...</p>
 {:else if !activity.current}
 	<p>No activity payload returned.</p>
-{:else if activity.current.length === 0}
+{:else if activity.current.data.length === 0}
 	<p>No failure or termination activity found.</p>
 {:else}
-	<table>
-		<thead>
-			<tr>
-				<th>Run</th>
-				<th>Sandbox</th>
-				<th>Status</th>
-				<th>Exit Code</th>
-				<th>Signal</th>
-				<th>Reason</th>
-				<th>Detail</th>
-				<th>Started</th>
-				<th>Ended</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each activity.current as row}
-				<tr>
-					<td><a href={`/sandboxes/${row.sandboxId}/runs/${row.id}`}>Run #{row.id}</a></td>
-					<td><a href={`/sandboxes/${row.sandboxId}`}>{row.sandboxName}</a></td>
-					<td>{row.status}</td>
-					<td>{row.exitCode ?? 'n/a'}</td>
-					<td>{row.exitSignal ?? 'n/a'}</td>
-					<td>{row.terminationReason ?? 'n/a'}</td>
-					<td>{row.terminationDetail ?? 'n/a'}</td>
-					<td>{row.startedAt ?? 'n/a'}</td>
-					<td>{row.terminatedAt ?? 'n/a'}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<DataTable
+		namespace="activity"
+		data={activity.current.data}
+		columns={activityColumns}
+		currentSortBy={activity.current.sortBy}
+		currentSortDir={activity.current.sortDir}
+		defaultSortBy="startedAt"
+		defaultSortDir="desc"
+		currentPage={activity.current.page}
+		totalPages={activity.current.totalPages}
+	/>
 {/if}

@@ -1,7 +1,21 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getVolumes } from './data.remote';
 
 	const volumes = getVolumes();
+	const volumeColumns = [
+		{
+			key: 'name',
+			label: 'Name',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/volumes/${row.id}`
+		},
+		{ key: 'quotaMib', label: 'Quota MiB', sortable: true, empty: 'n/a' },
+		{ key: 'sizeBytes', label: 'Size Bytes', sortable: true, empty: '0' },
+		{ key: 'labels', label: 'Labels', empty: 'n/a' },
+		{ key: 'updatedAt', label: 'Updated', sortable: true, type: 'date' }
+	];
 </script>
 
 <svelte:head>
@@ -17,29 +31,18 @@
 	<p>Loading volumes...</p>
 {:else if !volumes.current}
 	<p>No volume payload returned.</p>
-{:else if volumes.current.length === 0}
+{:else if volumes.current.data.length === 0}
 	<p>No volumes found.</p>
 {:else}
-	<table>
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Quota MiB</th>
-				<th>Size Bytes</th>
-				<th>Labels</th>
-				<th>Updated</th>
-			</tr>
-		</thead>
-		<tbody>
-			{#each volumes.current as volume}
-				<tr>
-					<td><a href={`/volumes/${volume.id}`}>{volume.name}</a></td>
-					<td>{volume.quotaMib ?? 'n/a'}</td>
-					<td>{volume.sizeBytes ?? 0}</td>
-					<td>{volume.labels ?? 'n/a'}</td>
-					<td>{volume.updatedAt ?? 'n/a'}</td>
-				</tr>
-			{/each}
-		</tbody>
-	</table>
+	<DataTable
+		namespace="volumes"
+		data={volumes.current.data}
+		columns={volumeColumns}
+		currentSortBy={volumes.current.sortBy}
+		currentSortDir={volumes.current.sortDir}
+		defaultSortBy="name"
+		defaultSortDir="asc"
+		currentPage={volumes.current.page}
+		totalPages={volumes.current.totalPages}
+	/>
 {/if}

@@ -1,7 +1,23 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getImageManifests } from './data.remote';
 
 	const manifests = getImageManifests();
+	const manifestColumns = [
+		{
+			key: 'id',
+			label: 'Manifest',
+			sortable: true,
+			type: 'link',
+			text: (row: any) => `Manifest #${row.id}`,
+			href: (row: any) => `/images/${manifests.current?.image.id}/manifests/${row.id}`
+		},
+		{ key: 'digest', label: 'Digest', sortable: true },
+		{ key: 'mediaType', label: 'Media Type', sortable: true, empty: 'n/a' },
+		{ key: 'schemaVersion', label: 'Schema', sortable: true, empty: 'n/a' },
+		{ key: 'indexId', label: 'Index ID', sortable: true, empty: 'n/a' },
+		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
+	];
 </script>
 
 <svelte:head>
@@ -24,32 +40,19 @@
 		<a href={`/images/${manifests.current.image.id}`}>{manifests.current.image.reference}</a>
 	</p>
 
-	{#if manifests.current.manifests.length === 0}
+	{#if manifests.current.manifests.data.length === 0}
 		<p>No manifests found.</p>
 	{:else}
-		<table>
-			<thead>
-				<tr>
-					<th>Manifest</th>
-					<th>Digest</th>
-					<th>Media Type</th>
-					<th>Schema</th>
-					<th>Index ID</th>
-					<th>Created</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each manifests.current.manifests as manifest}
-					<tr>
-						<td><a href={`/images/${manifests.current.image.id}/manifests/${manifest.id}`}>Manifest #{manifest.id}</a></td>
-						<td>{manifest.digest}</td>
-						<td>{manifest.mediaType ?? 'n/a'}</td>
-						<td>{manifest.schemaVersion ?? 'n/a'}</td>
-						<td>{manifest.indexId ?? 'n/a'}</td>
-						<td>{manifest.createdAt ?? 'n/a'}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+		<DataTable
+			namespace="manifests"
+			data={manifests.current.manifests.data}
+			columns={manifestColumns}
+			currentSortBy={manifests.current.manifests.sortBy}
+			currentSortDir={manifests.current.manifests.sortDir}
+			defaultSortBy="createdAt"
+			defaultSortDir="desc"
+			currentPage={manifests.current.manifests.page}
+			totalPages={manifests.current.manifests.totalPages}
+		/>
 	{/if}
 {/if}

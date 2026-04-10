@@ -1,11 +1,12 @@
 import { getRequestEvent, query } from '$app/server';
-import { desc, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db, runTable, sandboxTable } from '$lib/server/db';
+import { Pagination } from '$lib/server/pagination';
 import { parseIntParam } from '$lib/server/route-params';
 
 export const getSandboxRuns = query(async () => {
-	const sandboxId = parseIntParam(getRequestEvent().params.sandboxId, 'sandboxId');
-
+	const event = getRequestEvent();
+	const sandboxId = parseIntParam(event.params.sandboxId, 'sandboxId');
 	const [sandboxRows, runs] = await Promise.all([
 		db
 			.select({
@@ -16,8 +17,22 @@ export const getSandboxRuns = query(async () => {
 			.from(sandboxTable)
 			.where(eq(sandboxTable.id, sandboxId))
 			.limit(1),
-		db
-			.select({
+		Pagination.fromSearchParams(event.url.searchParams, {
+			namespace: 'runs',
+			query: db
+				.select({
+					id: runTable.id,
+					pid: runTable.pid,
+					status: runTable.status,
+					exitCode: runTable.exitCode,
+					exitSignal: runTable.exitSignal,
+					terminationReason: runTable.terminationReason,
+					startedAt: runTable.startedAt,
+					terminatedAt: runTable.terminatedAt
+				})
+				.from(runTable)
+				.where(eq(runTable.sandboxId, sandboxId)),
+			sorts: {
 				id: runTable.id,
 				pid: runTable.pid,
 				status: runTable.status,
@@ -26,10 +41,11 @@ export const getSandboxRuns = query(async () => {
 				terminationReason: runTable.terminationReason,
 				startedAt: runTable.startedAt,
 				terminatedAt: runTable.terminatedAt
-			})
-			.from(runTable)
-			.where(eq(runTable.sandboxId, sandboxId))
-			.orderBy(desc(runTable.startedAt), desc(runTable.id))
+			},
+			defaultSortBy: 'startedAt',
+			defaultSortDir: 'desc',
+			tieBreaker: runTable.id
+		})
 	]);
 
 	return {

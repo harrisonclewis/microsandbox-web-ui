@@ -1,7 +1,25 @@
 <script lang="ts">
+	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getLayerDetail } from './data.remote';
 
 	const detail = getLayerDetail();
+	const usageColumns = [
+		{
+			key: 'imageReference',
+			label: 'Image',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/images/${row.imageId}`
+		},
+		{
+			key: 'manifestDigest',
+			label: 'Manifest',
+			sortable: true,
+			type: 'link',
+			href: (row: any) => `/images/${row.imageId}/manifests/${row.manifestId}`
+		},
+		{ key: 'position', label: 'Position', sortable: true }
+	];
 </script>
 
 <svelte:head>
@@ -35,26 +53,19 @@
 	</dl>
 
 	<h2>Where Used</h2>
-	{#if detail.current.usage.length === 0}
+	{#if detail.current.usage.data.length === 0}
 		<p>This layer is not attached to any manifest.</p>
 	{:else}
-		<table>
-			<thead>
-				<tr>
-					<th>Image</th>
-					<th>Manifest</th>
-					<th>Position</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each detail.current.usage as use}
-					<tr>
-						<td><a href={`/images/${use.imageId}`}>{use.imageReference}</a></td>
-						<td><a href={`/images/${use.imageId}/manifests/${use.manifestId}`}>{use.manifestDigest}</a></td>
-						<td>{use.position}</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
+		<DataTable
+			namespace="usage"
+			data={detail.current.usage.data}
+			columns={usageColumns}
+			currentSortBy={detail.current.usage.sortBy}
+			currentSortDir={detail.current.usage.sortDir}
+			defaultSortBy="position"
+			defaultSortDir="desc"
+			currentPage={detail.current.usage.page}
+			totalPages={detail.current.usage.totalPages}
+		/>
 	{/if}
 {/if}
