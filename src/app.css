@@ -1,0 +1,7 @@
+ul[role="alert"] {
+    color: red;
+    border: 1px solid red;
+    max-width: 24rem;
+    padding: 1rem;
+    list-style-position: inside;
+}
