@@ -1,52 +1,37 @@
 <script lang="ts">
-	import '../../app.css';
 	import { logout } from './actions.remote.ts';
 
 	let { children } = $props();
 </script>
 
-<style>
-    nav {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border: 1px solid black;
-    }
-
-    nav ul {
-        display: flex;
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    nav li a, nav li button {
-        font-family: serif;
-        display: block;
-        padding: 0.5rem 1rem;
-        text-decoration: none;
-        color: black;
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 0.9rem;
-    }
-
-    nav li form {
-        display: flex;
-        height: 100%;
-    }
-
-    nav li a:hover, nav li button:hover {
-        background: black;
-        color: white;
-    }
-</style>
-
 <nav>
     <ul>
         <li>
             <a href="/dashboard">Dashboard</a>
+        </li>
+        <li>
+            <a href="/activity">Activity</a>
+        </li>
+        <li>
+            <a href="/sandboxes">Sandboxes</a>
+        </li>
+        <li>
+            <a href="/images">Images</a>
+        </li>
+        <li>
+            <a href="/layers">Layers</a>
+        </li>
+        <li>
+            <a href="/snapshots">Snapshots</a>
+        </li>
+        <li>
+            <a href="/volumes">Volumes</a>
+        </li>
+        <li>
+            <a href="/settings/migrations">Migrations</a>
+        </li>
+        <li>
+            <a href="/settings/database">Database</a>
         </li>
         <li>
             <form {...logout}>
