@@ -3,23 +3,13 @@
 	import { getLayerDetail } from './data.remote';
 
 	const detail = getLayerDetail();
-	const usageColumns = [
-		{
-			key: 'imageReference',
-			label: 'Image',
-			sortable: true,
-			type: 'link',
-			href: (row: any) => `/images/${row.imageId}`
+
+	const usageRemote = {
+		get current() {
+			return detail.current?.usage;
 		},
-		{
-			key: 'manifestDigest',
-			label: 'Manifest',
-			sortable: true,
-			type: 'link',
-			href: (row: any) => `/images/${row.imageId}/manifests/${row.manifestId}`
-		},
-		{ key: 'position', label: 'Position', sortable: true }
-	];
+		refresh: () => detail.refresh()
+	};
 </script>
 
 <svelte:head>
@@ -53,19 +43,28 @@
 	</dl>
 
 	<h2>Where Used</h2>
-	{#if detail.current.usage.data.length === 0}
-		<p>This layer is not attached to any manifest.</p>
-	{:else}
-		<DataTable
-			namespace="usage"
-			data={detail.current.usage.data}
-			columns={usageColumns}
-			currentSortBy={detail.current.usage.sortBy}
-			currentSortDir={detail.current.usage.sortDir}
-			defaultSortBy="position"
-			defaultSortDir="desc"
-			currentPage={detail.current.usage.page}
-			totalPages={detail.current.usage.totalPages}
-		/>
-	{/if}
+	<DataTable
+		namespace="usage"
+		remotePagination={usageRemote}
+		remoteLabels={{
+			empty: 'This layer is not attached to any manifest.'
+		}}
+		columns={[
+			{
+				key: 'imageReference',
+				label: 'Image',
+				sortable: true,
+				type: 'link',
+				href: (row: any) => `/images/${row.imageId}`
+			},
+			{
+				key: 'manifestDigest',
+				label: 'Manifest',
+				sortable: true,
+				type: 'link',
+				href: (row: any) => `/images/${row.imageId}/manifests/${row.manifestId}`
+			},
+			{ key: 'position', label: 'Position', sortable: true }
+		]}
+	/>
 {/if}

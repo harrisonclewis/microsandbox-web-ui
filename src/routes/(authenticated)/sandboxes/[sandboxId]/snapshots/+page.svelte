@@ -3,18 +3,13 @@
 	import { getSandboxSnapshots } from './data.remote';
 
 	const snapshots = getSandboxSnapshots();
-	const snapshotColumns = [
-		{
-			key: 'name',
-			label: 'Name',
-			sortable: true,
-			type: 'link',
-			href: (row: any) => `/snapshots/${row.id}`
+
+	const sandboxSnapshotsRemote = {
+		get current() {
+			return snapshots.current?.snapshots;
 		},
-		{ key: 'description', label: 'Description', sortable: true, empty: 'n/a' },
-		{ key: 'sizeBytes', label: 'Size Bytes', sortable: true, empty: '0' },
-		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
-	];
+		refresh: () => snapshots.refresh()
+	};
 </script>
 
 <svelte:head>
@@ -35,19 +30,23 @@
 	<p>Sandbox: <a href={`/sandboxes/${snapshots.current.sandbox.id}`}>{snapshots.current.sandbox.name}</a></p>
 	<p>Status: {snapshots.current.sandbox.status}</p>
 
-	{#if snapshots.current.snapshots.data.length === 0}
-		<p>No snapshots found.</p>
-	{:else}
-		<DataTable
-			namespace="snapshots"
-			data={snapshots.current.snapshots.data}
-			columns={snapshotColumns}
-			currentSortBy={snapshots.current.snapshots.sortBy}
-			currentSortDir={snapshots.current.snapshots.sortDir}
-			defaultSortBy="createdAt"
-			defaultSortDir="desc"
-			currentPage={snapshots.current.snapshots.page}
-			totalPages={snapshots.current.snapshots.totalPages}
-		/>
-	{/if}
+	<DataTable
+		namespace="snapshots"
+		remotePagination={sandboxSnapshotsRemote}
+		remoteLabels={{
+			empty: 'No snapshots found.'
+		}}
+		columns={[
+			{
+				key: 'name',
+				label: 'Name',
+				sortable: true,
+				type: 'link',
+				href: (row: any) => `/snapshots/${row.id}`
+			},
+			{ key: 'description', label: 'Description', sortable: true, empty: 'n/a' },
+			{ key: 'sizeBytes', label: 'Size Bytes', sortable: true, empty: '0' },
+			{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
+		]}
+	/>
 {/if}

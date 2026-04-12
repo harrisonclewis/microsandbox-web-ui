@@ -3,15 +3,13 @@
 	import { getSandboxMetrics } from './data.remote';
 
 	const metrics = getSandboxMetrics();
-	const metricColumns = [
-		{ key: 'sampledAt', label: 'Sampled At', sortable: true, type: 'date' },
-		{ key: 'cpuPercent', label: 'CPU %', sortable: true, empty: 'n/a' },
-		{ key: 'memoryBytes', label: 'Memory Bytes', sortable: true, empty: 'n/a' },
-		{ key: 'diskReadBytes', label: 'Disk Read', sortable: true, empty: 'n/a' },
-		{ key: 'diskWriteBytes', label: 'Disk Write', sortable: true, empty: 'n/a' },
-		{ key: 'netRxBytes', label: 'Net RX', sortable: true, empty: 'n/a' },
-		{ key: 'netTxBytes', label: 'Net TX', sortable: true, empty: 'n/a' }
-	];
+
+	const metricsRemote = {
+		get current() {
+			return metrics.current?.metrics;
+		},
+		refresh: () => metrics.refresh()
+	};
 </script>
 
 <svelte:head>
@@ -32,19 +30,20 @@
 	<p>Sandbox: <a href={`/sandboxes/${metrics.current.sandbox.id}`}>{metrics.current.sandbox.name}</a></p>
 	<p>Status: {metrics.current.sandbox.status}</p>
 
-	{#if metrics.current.metrics.data.length === 0}
-		<p>No metric samples found.</p>
-	{:else}
-		<DataTable
-			namespace="metrics"
-			data={metrics.current.metrics.data}
-			columns={metricColumns}
-			currentSortBy={metrics.current.metrics.sortBy}
-			currentSortDir={metrics.current.metrics.sortDir}
-			defaultSortBy="sampledAt"
-			defaultSortDir="desc"
-			currentPage={metrics.current.metrics.page}
-			totalPages={metrics.current.metrics.totalPages}
-		/>
-	{/if}
+	<DataTable
+		namespace="metrics"
+		remotePagination={metricsRemote}
+		remoteLabels={{
+			empty: 'No metric samples found.'
+		}}
+		columns={[
+			{ key: 'sampledAt', label: 'Sampled At', sortable: true, type: 'date' },
+			{ key: 'cpuPercent', label: 'CPU %', sortable: true, empty: 'n/a' },
+			{ key: 'memoryBytes', label: 'Memory Bytes', sortable: true, empty: 'n/a' },
+			{ key: 'diskReadBytes', label: 'Disk Read', sortable: true, empty: 'n/a' },
+			{ key: 'diskWriteBytes', label: 'Disk Write', sortable: true, empty: 'n/a' },
+			{ key: 'netRxBytes', label: 'Net RX', sortable: true, empty: 'n/a' },
+			{ key: 'netTxBytes', label: 'Net TX', sortable: true, empty: 'n/a' }
+		]}
+	/>
 {/if}

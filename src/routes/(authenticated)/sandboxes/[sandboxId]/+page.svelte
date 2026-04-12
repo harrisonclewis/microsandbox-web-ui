@@ -3,32 +3,20 @@
 	import { getSandboxDetail } from './data.remote';
 
 	const detail = getSandboxDetail();
-	const linkedImageColumns = [
-		{
-			key: 'imageReference',
-			label: 'Image',
-			sortable: true,
-			type: 'link',
-			href: (row: any) => `/images/${row.imageId}`
+
+	const sandboxLinkedImagesRemote = {
+		get current() {
+			return detail.current?.linkedImages;
 		},
-		{ key: 'manifestDigest', label: 'Manifest Digest', sortable: true },
-		{ key: 'createdAt', label: 'Linked At', sortable: true, type: 'date' }
-	];
-	const latestRunColumns = [
-		{
-			key: 'id',
-			label: 'Run',
-			sortable: true,
-			type: 'link',
-			text: (row: any) => `Run #${row.id}`,
-			href: (row: any) => `/sandboxes/${detail.current?.sandbox.id}/runs/${row.id}`
+		refresh: () => detail.refresh()
+	};
+
+	const sandboxLatestRunsRemote = {
+		get current() {
+			return detail.current?.latestRuns;
 		},
-		{ key: 'status', label: 'Status', sortable: true, type: 'status' },
-		{ key: 'exitCode', label: 'Exit', sortable: true, empty: 'n/a' },
-		{ key: 'terminationReason', label: 'Reason', sortable: true, empty: 'n/a' },
-		{ key: 'startedAt', label: 'Started', sortable: true, type: 'date' },
-		{ key: 'terminatedAt', label: 'Ended', sortable: true, type: 'date' }
-	];
+		refresh: () => detail.refresh()
+	};
 </script>
 
 <svelte:head>
@@ -67,40 +55,50 @@
 
 	<section>
 		<h2>Linked Images</h2>
-		{#if detail.current.linkedImages.data.length === 0}
-			<p>No linked images.</p>
-		{:else}
-			<DataTable
-				namespace="images"
-				data={detail.current.linkedImages.data}
-				columns={linkedImageColumns}
-				currentSortBy={detail.current.linkedImages.sortBy}
-				currentSortDir={detail.current.linkedImages.sortDir}
-				defaultSortBy="createdAt"
-				defaultSortDir="desc"
-				currentPage={detail.current.linkedImages.page}
-				totalPages={detail.current.linkedImages.totalPages}
-			/>
-		{/if}
+		<DataTable
+			namespace="images"
+			remotePagination={sandboxLinkedImagesRemote}
+			remoteLabels={{
+				empty: 'No linked images.'
+			}}
+			columns={[
+				{
+					key: 'imageReference',
+					label: 'Image',
+					sortable: true,
+					type: 'link',
+					href: (row: any) => `/images/${row.imageId}`
+				},
+				{ key: 'manifestDigest', label: 'Manifest Digest', sortable: true },
+				{ key: 'createdAt', label: 'Linked At', sortable: true, type: 'date' }
+			]}
+		/>
 	</section>
 
 	<section>
 		<h2>Recent Runs</h2>
-		{#if detail.current.latestRuns.data.length === 0}
-			<p>No runs recorded.</p>
-		{:else}
-			<DataTable
-				namespace="runs"
-				data={detail.current.latestRuns.data}
-				columns={latestRunColumns}
-				currentSortBy={detail.current.latestRuns.sortBy}
-				currentSortDir={detail.current.latestRuns.sortDir}
-				defaultSortBy="startedAt"
-				defaultSortDir="desc"
-				currentPage={detail.current.latestRuns.page}
-				totalPages={detail.current.latestRuns.totalPages}
-			/>
-		{/if}
+		<DataTable
+			namespace="runs"
+			remotePagination={sandboxLatestRunsRemote}
+			remoteLabels={{
+				empty: 'No runs recorded.'
+			}}
+			columns={[
+				{
+					key: 'id',
+					label: 'Run',
+					sortable: true,
+					type: 'link',
+					text: (row: any) => `Run #${row.id}`,
+					href: (row: any) => `/sandboxes/${detail.current?.sandbox.id}/runs/${row.id}`
+				},
+				{ key: 'status', label: 'Status', sortable: true, type: 'status' },
+				{ key: 'exitCode', label: 'Exit', sortable: true, empty: 'n/a' },
+				{ key: 'terminationReason', label: 'Reason', sortable: true, empty: 'n/a' },
+				{ key: 'startedAt', label: 'Started', sortable: true, type: 'date' },
+				{ key: 'terminatedAt', label: 'Ended', sortable: true, type: 'date' }
+			]}
+		/>
 	</section>
 
 	<section>

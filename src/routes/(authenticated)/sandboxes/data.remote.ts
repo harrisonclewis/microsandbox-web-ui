@@ -1,8 +1,11 @@
 import { getRequestEvent, query } from '$app/server';
 import { db, sandboxTable } from '$lib/server/db';
-import { Pagination } from '$lib/server/pagination';
+import type { Sandbox } from '$lib/server/db/schema';
+import { Pagination, type PaginatedResult } from '$lib/server/pagination';
 
-export const getSandboxes = query(async () => {
+type SandboxListRow = Pick<Sandbox, 'id' | 'name' | 'status' | 'createdAt' | 'updatedAt'>;
+
+export const getSandboxes = query<PaginatedResult<SandboxListRow>>(async () => {
 	const event = getRequestEvent();
 	return Pagination.fromSearchParams(event.url.searchParams, {
 		namespace: 'sandboxes',

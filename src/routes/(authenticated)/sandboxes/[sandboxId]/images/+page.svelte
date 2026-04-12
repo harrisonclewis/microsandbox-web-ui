@@ -3,17 +3,13 @@
 	import { getSandboxImages } from './data.remote';
 
 	const images = getSandboxImages();
-	const imageColumns = [
-		{
-			key: 'imageReference',
-			label: 'Image',
-			sortable: true,
-			type: 'link',
-			href: (row: any) => `/images/${row.imageId}`
+
+	const sandboxImagesRemote = {
+		get current() {
+			return images.current?.images;
 		},
-		{ key: 'manifestDigest', label: 'Manifest Digest', sortable: true },
-		{ key: 'createdAt', label: 'Linked At', sortable: true, type: 'date' }
-	];
+		refresh: () => images.refresh()
+	};
 </script>
 
 <svelte:head>
@@ -34,19 +30,22 @@
 	<p>Sandbox: <a href={`/sandboxes/${images.current.sandbox.id}`}>{images.current.sandbox.name}</a></p>
 	<p>Status: {images.current.sandbox.status}</p>
 
-	{#if images.current.images.data.length === 0}
-		<p>No image associations found.</p>
-	{:else}
-		<DataTable
-			namespace="images"
-			data={images.current.images.data}
-			columns={imageColumns}
-			currentSortBy={images.current.images.sortBy}
-			currentSortDir={images.current.images.sortDir}
-			defaultSortBy="createdAt"
-			defaultSortDir="desc"
-			currentPage={images.current.images.page}
-			totalPages={images.current.images.totalPages}
-		/>
-	{/if}
+	<DataTable
+		namespace="images"
+		remotePagination={sandboxImagesRemote}
+		remoteLabels={{
+			empty: 'No image associations found.'
+		}}
+		columns={[
+			{
+				key: 'imageReference',
+				label: 'Image',
+				sortable: true,
+				type: 'link',
+				href: (row: any) => `/images/${row.imageId}`
+			},
+			{ key: 'manifestDigest', label: 'Manifest Digest', sortable: true },
+			{ key: 'createdAt', label: 'Linked At', sortable: true, type: 'date' }
+		]}
+	/>
 {/if}

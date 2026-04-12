@@ -20,6 +20,8 @@ export type PaginationMeta = {
 export type PaginatedResult<T> = PaginationMeta & {
 	sortBy: string;
 	sortDir: SortDirection;
+	defaultSortBy: string;
+	defaultSortDir: SortDirection;
 	data: T[];
 };
 
@@ -49,12 +51,13 @@ export class Pagination {
 	): Promise<PaginatedResult<any>> {
 		const paginationRequest = parsePaginationRequest(searchParams, options.namespace);
 		const sortKeys = Object.keys(options.sorts) as Array<keyof TSorts & string>;
+		const defaultSortDir = options.defaultSortDir ?? 'asc';
 		const { sortBy, sortDir } = parseSortRequest(
 			searchParams,
 			options.namespace,
 			sortKeys,
 			options.defaultSortBy,
-			options.defaultSortDir ?? 'asc'
+			defaultSortDir
 		);
 
 		const totalRows = options.countQuery
@@ -74,6 +77,8 @@ export class Pagination {
 			...pagination,
 			sortBy,
 			sortDir,
+			defaultSortBy: options.defaultSortBy,
+			defaultSortDir,
 			data
 		};
 	}
@@ -89,12 +94,13 @@ export class Pagination {
 		options: ArrayPaginationOptions<TItem, TSortBy>
 	): PaginatedResult<TItem> {
 		const paginationRequest = parsePaginationRequest(searchParams, options.namespace);
+		const defaultSortDir = options.defaultSortDir ?? 'asc';
 		const { sortBy, sortDir } = parseSortRequest(
 			searchParams,
 			options.namespace,
 			options.allowedSortKeys,
 			options.defaultSortBy,
-			options.defaultSortDir ?? 'asc'
+			defaultSortDir
 		);
 
 		const sortedRows = [...options.data].sort((left, right) =>
@@ -107,6 +113,8 @@ export class Pagination {
 			...pagination,
 			sortBy,
 			sortDir,
+			defaultSortBy: options.defaultSortBy,
+			defaultSortDir,
 			data: sortedRows.slice(offset, offset + limit)
 		};
 	}

@@ -3,7 +3,31 @@
 	import { getSnapshots } from './data.remote';
 
 	const snapshots = getSnapshots();
-	const snapshotColumns = [
+	const snapshotData = $derived(
+		(snapshots.current?.data ?? []).map((snapshot) => ({
+			...snapshot,
+			sandboxName: snapshot.sandboxId ? snapshot.sandboxName : null
+		}))
+	);
+</script>
+
+<svelte:head>
+	<title>Snapshots | Microsandbox Web UI</title>
+</svelte:head>
+
+<h1>Snapshots</h1>
+
+<DataTable
+	namespace="snapshots"
+	remotePagination={snapshots}
+	data={snapshotData}
+	remoteLabels={{
+		error: 'Unable to load snapshots.',
+		loading: 'Loading snapshots...',
+		noPayload: 'No snapshot payload returned.',
+		empty: 'No snapshots found.'
+	}}
+	columns={[
 		{
 			key: 'name',
 			label: 'Name',
@@ -22,39 +46,5 @@
 		},
 		{ key: 'sizeBytes', label: 'Size Bytes', sortable: true, empty: '0' },
 		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' }
-	];
-	const snapshotData = $derived(
-		(snapshots.current?.data ?? []).map((snapshot) => ({
-			...snapshot,
-			sandboxName: snapshot.sandboxId ? snapshot.sandboxName : null
-		}))
-	);
-</script>
-
-<svelte:head>
-	<title>Snapshots | Microsandbox Web UI</title>
-</svelte:head>
-
-<h1>Snapshots</h1>
-
-{#if snapshots.error}
-	<p>Unable to load snapshots.</p>
-{:else if snapshots.loading}
-	<p>Loading snapshots...</p>
-{:else if !snapshots.current}
-	<p>No snapshot payload returned.</p>
-{:else if snapshots.current.data.length === 0}
-	<p>No snapshots found.</p>
-{:else}
-	<DataTable
-		namespace="snapshots"
-		data={snapshotData}
-		columns={snapshotColumns}
-		currentSortBy={snapshots.current.sortBy}
-		currentSortDir={snapshots.current.sortDir}
-		defaultSortBy="createdAt"
-		defaultSortDir="desc"
-		currentPage={snapshots.current.page}
-		totalPages={snapshots.current.totalPages}
-	/>
-{/if}
+	]}
+/>
