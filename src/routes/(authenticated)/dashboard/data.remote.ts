@@ -2,6 +2,8 @@ import { getRequestEvent, query } from '$app/server';
 import { count } from 'drizzle-orm';
 import { db, imageTable, runTable, sandboxTable } from '$lib/server/db';
 import { Pagination } from '$lib/server/pagination';
+import { DbJson } from '$lib/validation/db-json';
+import { sandboxEngineConfigSchema } from '$lib/sandbox/engine-config';
 
 export const getDashboardStats = query(async () => {
 	const [sandboxCountRow, runCountRow, imageCountRow] = await Promise.all([
@@ -49,14 +51,16 @@ export const getDashboardRecentRuns = query(async () => {
 
 export const getDashboardRecentSandboxes = query(async () => {
 	const event = getRequestEvent();
-	return Pagination.fromSearchParams(event.url.searchParams, {
+
+	const pagination = await Pagination.fromSearchParams(event.url.searchParams, {
 		namespace: 'sandboxes',
 		query: db
 			.select({
 				id: sandboxTable.id,
 				name: sandboxTable.name,
 				status: sandboxTable.status,
-				updatedAt: sandboxTable.updatedAt
+				updatedAt: sandboxTable.updatedAt,
+				config: sandboxTable.config
 			})
 			.from(sandboxTable),
 		sorts: {
@@ -69,4 +73,12 @@ export const getDashboardRecentSandboxes = query(async () => {
 		defaultSortDir: 'desc',
 		tieBreaker: sandboxTable.id
 	});
+
+	return {
+		...pagination,
+		data: pagination.data.map(sandbox => ({
+			...sandbox,
+			config: DbJson.column(sandboxEngineConfigSchema, sandbox.config)
+		}))
+	};
 });

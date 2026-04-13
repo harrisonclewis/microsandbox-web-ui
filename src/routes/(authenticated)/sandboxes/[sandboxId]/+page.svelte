@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { formatMib } from '$lib';
 	import DataTable from '$lib/components/table/DataTable.svelte';
 	import { getSandboxDetail } from './data.remote';
 
@@ -42,8 +43,38 @@
 			<dd>{detail.current.sandbox.createdAt ?? 'n/a'}</dd>
 			<dt>Updated</dt>
 			<dd>{detail.current.sandbox.updatedAt ?? 'n/a'}</dd>
-			<dt>Config</dt>
-			<dd>{detail.current.sandbox.config}</dd>
+			<dt>Engine config</dt>
+			<dd>
+				{#if detail.current.sandbox.config.error}
+					<p class="config-parse-error">{detail.current.sandbox.config.error}</p>
+					<pre class="config-raw">{detail.current.sandbox.config.raw}</pre>
+				{:else if detail.current.sandbox.config.data}
+					<dl class="engine-config-summary">
+						<dt>Image</dt>
+						<dd>
+							{detail.current.sandbox.config.data.image.Oci}
+						</dd>
+						{#if detail.current.sandbox.config.data.cpus != null}
+							<dt>CPUs</dt>
+							<dd>{detail.current.sandbox.config.data.cpus}</dd>
+						{/if}
+						{#if detail.current.sandbox.config.data.memory_mib != null}
+							<dt>Memory</dt>
+							<dd>{formatMib(detail.current.sandbox.config.data.memory_mib)}</dd>
+						{/if}
+						{#if detail.current.sandbox.config.data.workdir}
+							<dt>Workdir</dt>
+							<dd>{detail.current.sandbox.config.data.workdir}</dd>
+						{/if}
+					</dl>
+					<details>
+						<summary>Full JSON</summary>
+						<pre class="config-raw">{JSON.stringify(detail.current.sandbox.config.data, null, 2)}</pre>
+					</details>
+				{:else}
+					<pre class="config-raw">{detail.current.sandbox.config.raw}</pre>
+				{/if}
+			</dd>
 		</dl>
 		<p>
 			<a href={`/sandboxes/${detail.current.sandbox.id}/runs`}>Runs</a>

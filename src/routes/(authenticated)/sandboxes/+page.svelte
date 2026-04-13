@@ -1,5 +1,6 @@
 <script lang="ts">
 	import DataTable from '$lib/components/table/DataTable.svelte';
+	import { convertBytes } from '$lib';
 	import { getSandboxes } from './data.remote';
 
 	const sandboxes = getSandboxes();
@@ -29,6 +30,31 @@
 			sortable: true,
 			type: 'link',
 			href: (row: any) => `/sandboxes/${row.id}`
+		},
+		{
+			key: 'cpus',
+			label: 'CPUs',
+			value: (row: any) => {
+				const cpus = row.config?.data?.cpus;
+				return cpus != null ? cpus : 'n/a';
+			}
+		},
+		{
+			key: 'imageOci',
+			label: 'Image (OCI)',
+			value: (row: any) => {
+				const img = row.config?.data?.image;
+				const ref = img?.Oci ?? img?.Path;
+				return ref != null && ref !== '' ? ref : 'n/a';
+			}
+		},
+		{
+			key: 'memoryMib',
+			label: 'Memory',
+			value: (row: any) => {
+				const mib = row.config?.data?.memory_mib;
+				return mib != null ? convertBytes(mib * 1024 * 1024) : 'n/a';
+			}
 		},
 		{ key: 'status', label: 'Status', sortable: true, type: 'status' },
 		{ key: 'createdAt', label: 'Created', sortable: true, type: 'date' },

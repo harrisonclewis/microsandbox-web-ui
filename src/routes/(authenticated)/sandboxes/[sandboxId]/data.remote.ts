@@ -9,7 +9,9 @@ import {
 	sandboxTable,
 	snapshotTable
 } from '$lib/server/db';
+import { sandboxEngineConfigSchema } from '$lib/sandbox/engine-config';
 import { Pagination } from '$lib/server/pagination';
+import { DbJson } from '$lib/validation/db-json';
 import { parseIntParam } from '$lib/server/route-params';
 
 export const getSandboxDetail = query(async () => {
@@ -94,7 +96,10 @@ export const getSandboxDetail = query(async () => {
 	}
 
 	return {
-		sandbox,
+		sandbox: {
+			...sandbox,
+			config: DbJson.column(sandboxEngineConfigSchema, sandbox.config)
+		},
 		linkedImages,
 		latestRuns,
 		snapshots: snapshotRows
