@@ -4,6 +4,23 @@ import { db, runTable, sandboxTable } from '$lib/server/db';
 import { Pagination } from '$lib/server/pagination';
 import { parseIntParam } from '$lib/server/route-params';
 
+/** Sandbox row only — for runs section layout (avoids loading run history on tool subpages). */
+export const getSandboxRunsContext = query(async () => {
+	const event = getRequestEvent();
+	const sandboxId = parseIntParam(event.params.sandboxId, 'sandboxId');
+	const sandboxRows = await db
+		.select({
+			id: sandboxTable.id,
+			name: sandboxTable.name,
+			status: sandboxTable.status
+		})
+		.from(sandboxTable)
+		.where(eq(sandboxTable.id, sandboxId))
+		.limit(1);
+
+	return { sandbox: sandboxRows[0] ?? null };
+});
+
 export const getSandboxRuns = query(async () => {
 	const event = getRequestEvent();
 	const sandboxId = parseIntParam(event.params.sandboxId, 'sandboxId');

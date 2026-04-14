@@ -1,4 +1,6 @@
 <script lang="ts">
+	import SdkUrlFeedback from '$lib/components/sdk/SdkUrlFeedback.svelte';
+	import { volumeRemove } from '../actions.remote';
 	import { getVolumeDetail } from './data.remote';
 
 	const detail = getVolumeDetail();
@@ -9,6 +11,8 @@
 </svelte:head>
 
 <h1>Volume Detail</h1>
+
+<SdkUrlFeedback />
 
 {#if detail.error}
 	<p>Unable to load volume detail.</p>
@@ -33,4 +37,21 @@
 		<dt>Updated</dt>
 		<dd>{detail.current.updatedAt ?? 'n/a'}</dd>
 	</dl>
+
+	<section>
+		<h2>SDK remove</h2>
+		<p>Removes the named volume via <code>Volume.remove</code> (fails if still mounted).</p>
+		{#if volumeRemove.fields.allIssues()?.length}
+			<ul role="alert">
+				{#each volumeRemove.fields.allIssues() ?? [] as issue}
+					<li>{issue.message}</li>
+				{/each}
+			</ul>
+		{/if}
+		<form {...volumeRemove}>
+			<input type="hidden" name="name" value={detail.current.name} />
+			<input type="hidden" name="confirm" value="REMOVE_VOLUME" />
+			<button type="submit" disabled={volumeRemove.pending > 0}>Remove volume</button>
+		</form>
+	</section>
 {/if}

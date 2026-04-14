@@ -1,4 +1,5 @@
 <script lang="ts">
+	import SdkSnapshotsGate from '$lib/components/sdk/SdkSnapshotsGate.svelte';
 	import { getSnapshotDetail } from './data.remote';
 
 	const detail = getSnapshotDetail();
@@ -9,6 +10,8 @@
 </svelte:head>
 
 <h1>Snapshot Detail</h1>
+
+<SdkSnapshotsGate />
 
 {#if detail.error}
 	<p>Unable to load snapshot detail.</p>

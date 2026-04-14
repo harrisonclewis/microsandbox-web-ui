@@ -4,12 +4,14 @@
 	import {
 		getDashboardRecentRuns,
 		getDashboardRecentSandboxes,
-		getDashboardStats
+		getDashboardStats,
+		getLiveSdkMetrics
 	} from './data.remote';
 
 	const stats = getDashboardStats();
 	const recentRuns = getDashboardRecentRuns();
 	const recentSandboxes = getDashboardRecentSandboxes();
+	const liveSdk = getLiveSdkMetrics();
 </script>
 
 <svelte:head>
@@ -17,6 +19,34 @@
 </svelte:head>
 
 <h1>Dashboard</h1>
+
+<section>
+	<h2>Live SDK metrics</h2>
+	{#if liveSdk.error}
+		<p>Unable to load SDK metrics.</p>
+	{:else if liveSdk.loading}
+		<p>Loading SDK metrics…</p>
+	{:else if liveSdk.current}
+		{#if !liveSdk.current.capabilities.supportedHost}
+			<p>SDK not supported on this server host.</p>
+		{:else if !liveSdk.current.capabilities.installed}
+			<p>SDK runtime not installed. <a href="/settings/sdk">SDK settings</a></p>
+		{:else if liveSdk.current.metrics && !liveSdk.current.metrics.ok}
+			<p role="alert">{liveSdk.current.metrics.message}</p>
+		{:else if liveSdk.current.metrics?.ok}
+			<ul>
+				{#each Object.entries(liveSdk.current.metrics.data) as [name, m] (name)}
+					<li>
+						<strong>{name}</strong>: CPU {m.cpuPercent?.toFixed?.(1) ?? m.cpuPercent}% · mem
+						{m.memoryBytes} / {m.memoryLimitBytes} B
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<p>No metrics.</p>
+		{/if}
+	{/if}
+</section>
 
 <section>
 	<h2>Totals</h2>

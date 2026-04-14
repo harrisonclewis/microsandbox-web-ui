@@ -4,6 +4,18 @@ import { db, imageTable, runTable, sandboxTable } from '$lib/server/db';
 import { Pagination } from '$lib/server/pagination';
 import { DbJson } from '$lib/validation/db-json';
 import { sandboxEngineConfigSchema } from '$lib/sandbox/engine-config';
+import { getSdkCapabilities } from '$lib/server/microsandbox/guards.js';
+import { sdkAllMetrics } from '$lib/server/microsandbox/service.js';
+
+/** Point-in-time metrics for all running sandboxes (SDK); null when SDK unavailable. */
+export const getLiveSdkMetrics = query(async () => {
+	const capabilities = getSdkCapabilities();
+	if (!capabilities.supportedHost || !capabilities.installed) {
+		return { capabilities, metrics: null };
+	}
+	const metrics = await sdkAllMetrics();
+	return { capabilities, metrics };
+});
 
 export const getDashboardStats = query(async () => {
 	const [sandboxCountRow, runCountRow, imageCountRow] = await Promise.all([

@@ -1,14 +1,24 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { getRunDetail } from './data.remote';
 
 	const runDetail = getRunDetail();
+	const runsHref = $derived(`/sandboxes/${page.params.sandboxId}/runs`);
 </script>
 
 <svelte:head>
 	<title>Run Detail | Microsandbox Web UI</title>
 </svelte:head>
 
-<h1>Run Detail</h1>
+<h2>
+	{#if runDetail.current}
+		Run #{runDetail.current.id}
+	{:else}
+		Run detail
+	{/if}
+</h2>
+
+<p><a href={runsHref}>Back to run history</a></p>
 
 {#if runDetail.error}
 	<p>Unable to load run detail.</p>

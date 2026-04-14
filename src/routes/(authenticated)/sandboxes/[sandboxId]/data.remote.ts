@@ -13,6 +13,8 @@ import { sandboxEngineConfigSchema } from '$lib/sandbox/engine-config';
 import { Pagination } from '$lib/server/pagination';
 import { DbJson } from '$lib/validation/db-json';
 import { parseIntParam } from '$lib/server/route-params';
+import { getSdkCapabilities } from '$lib/server/microsandbox/guards.js';
+import { sdkGetHandle, sdkMetrics } from '$lib/server/microsandbox/service.js';
 
 export const getSandboxDetail = query(async () => {
 	const event = getRequestEvent();
@@ -104,4 +106,25 @@ export const getSandboxDetail = query(async () => {
 		latestRuns,
 		snapshots: snapshotRows
 	};
+});
+
+/** Live SDK handle + metrics when runtime is available (DB reads remain source of truth for history). */
+export const getSandboxSdkLive = query(async () => {
+	const event = getRequestEvent();
+	const sandboxId = parseIntParam(event.params.sandboxId, 'sandboxId');
+	const [row] = await db
+		.select({ name: sandboxTable.name })
+		.from(sandboxTable)
+		.where(eq(sandboxTable.id, sandboxId))
+		.limit(1);
+	if (!row) {
+		error(404, 'Sandbox not found');
+	}
+	const capabilities = getSdkCapabilities();
+	if (!capabilities.supportedHost || !capabilities.installed) {
+		return { capabilities, handle: null, metrics: null };
+	}
+	const handle = await sdkGetHandle(row.name);
+	const metrics = handle.ok ? await sdkMetrics(row.name) : null;
+	return { capabilities, handle, metrics };
 });

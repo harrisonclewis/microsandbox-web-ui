@@ -1,8 +1,11 @@
 <script lang="ts">
 	import DataTable from '$lib/components/table/DataTable.svelte';
+	import { page } from '$app/state';
 	import { getVolumes } from './data.remote';
 
 	const volumes = getVolumes();
+	const volumeCreated = $derived(page.url.searchParams.get('volumeCreated'));
+	const volumeRemoved = $derived(page.url.searchParams.get('volumeRemoved'));
 </script>
 
 <svelte:head>
@@ -10,7 +13,16 @@
 </svelte:head>
 
 <h1>Volumes</h1>
-<p><a href="/volumes/new">View create schema preview</a></p>
+{#if volumeCreated}
+	<p role="status">SDK created volume <code>{volumeCreated}</code>.</p>
+{/if}
+{#if volumeRemoved}
+	<p role="status">Volume removed via SDK.</p>
+{/if}
+<p>
+	<a href="/volumes/new">Create volume (SDK)</a>
+	· <a href="/settings/sdk">SDK diagnostics</a>
+</p>
 
 <DataTable
 	namespace="volumes"

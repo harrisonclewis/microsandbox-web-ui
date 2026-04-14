@@ -40,3 +40,9 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Microsandbox SDK (server)
+
+- The `microsandbox` npm package runs **on the SvelteKit server** (supported: **Linux x64/arm64**, **macOS Apple Silicon**). It is not a supported host on Windows.
+- Set **`MSB_ADMIN_INSTALL_TOKEN`** (long random secret) to enable the **Settings → SDK** form that calls `install()` to download msb + libkrunfw on the host (requires network on the server).
+- Existing **`ACCESS_TOKEN`** is still used for browser login. **`DATABASE_URL`** is required for the read-only SQLite/libsql UI.

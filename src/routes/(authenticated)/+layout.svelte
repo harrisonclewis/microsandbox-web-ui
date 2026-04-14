@@ -39,6 +39,9 @@
             <a href="/settings/database">Database</a>
         </li>
         <li>
+            <a href="/settings/sdk">SDK</a>
+        </li>
+        <li>
             <form {...logout}>
                 <button type="submit" disabled={logout.pending > 0}>
                     Logout

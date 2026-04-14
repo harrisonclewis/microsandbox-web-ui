@@ -1,5 +1,6 @@
 <script lang="ts">
 	import DataTable from '$lib/components/table/DataTable.svelte';
+	import SdkSnapshotsGate from '$lib/components/sdk/SdkSnapshotsGate.svelte';
 	import { getSnapshots } from './data.remote';
 
 	const snapshots = getSnapshots();
@@ -16,6 +17,8 @@
 </svelte:head>
 
 <h1>Snapshots</h1>
+
+<SdkSnapshotsGate />
 
 <DataTable
 	namespace="snapshots"
