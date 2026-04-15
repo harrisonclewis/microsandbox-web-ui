@@ -41,13 +41,36 @@ export async function sdkCreateSandbox(input: SandboxCreatePayload): Promise<Sdk
 	});
 }
 
+function isAlreadyRunningMessage(msg: string): boolean {
+	return /already\s+running/i.test(msg);
+}
+
+/**
+ * Start or attach to a sandbox by name. Uses SandboxHandle (get → start/connect) instead of
+ * Sandbox.start(name), which errors when the SDK store still marks the sandbox as running.
+ */
 export async function sdkStartSandbox(name: string, detached: boolean): Promise<SdkResult<{ name: string }>> {
 	return wrap(async () => {
 		const gate = assertSdkUsable();
 		if (!gate.ok) throw new Error(gate.message);
 		const { msb } = gate;
-		const sb = detached ? await msb.Sandbox.startDetached(name) : await msb.Sandbox.start(name);
-		return { name: await sb.name };
+		const handle = await msb.Sandbox.get(name);
+		const attachIfRunning =
+			handle.status === 'running' || handle.status === 'draining';
+		try {
+			const live = attachIfRunning
+				? await handle.connect()
+				: detached
+					? await handle.startDetached()
+					: await handle.start();
+			return { name: await live.name };
+		} catch (e: unknown) {
+			const msg = e instanceof Error ? e.message : String(e);
+			if (!isAlreadyRunningMessage(msg)) throw e;
+			const h = await msb.Sandbox.get(name);
+			const sb = await h.connect();
+			return { name: await sb.name };
+		}
 	});
 }
 

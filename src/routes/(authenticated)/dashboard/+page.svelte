@@ -34,14 +34,18 @@
 		{:else if liveSdk.current.metrics && !liveSdk.current.metrics.ok}
 			<p role="alert">{liveSdk.current.metrics.message}</p>
 		{:else if liveSdk.current.metrics?.ok}
-			<ul>
-				{#each Object.entries(liveSdk.current.metrics.data) as [name, m] (name)}
-					<li>
-						<strong>{name}</strong>: CPU {m.cpuPercent?.toFixed?.(1) ?? m.cpuPercent}% · mem
-						{m.memoryBytes} / {m.memoryLimitBytes} B
-					</li>
-				{/each}
-			</ul>
+			{#if Object.keys(liveSdk.current.metrics.data).length === 0}
+				<p>No sandboxes running.</p>
+			{:else}
+				<ul>
+					{#each Object.entries(liveSdk.current.metrics.data) as [name, m] (name)}
+						<li>
+							<strong>{name}</strong>: CPU {m.cpuPercent?.toFixed?.(1) ?? m.cpuPercent}% · mem
+							{m.memoryBytes} / {m.memoryLimitBytes} B
+						</li>
+					{/each}
+				</ul>
+			{/if}
 		{:else}
 			<p>No metrics.</p>
 		{/if}
