@@ -3,5 +3,4 @@
 </svelte:head>
 
 <h2>About</h2>
-<p>Microsandbox Web UI is a read-only dashboard for browsing sandbox runtime and image metadata.</p>
-<p>Use the authenticated area to inspect sandboxes, runs, metrics, snapshots, volumes, and registry data.</p>
+<p>Microsandbox Web UI is a dashboard for managing sandboxes, runs, metrics, snapshots, volumes, registry data, and Microsandbox SDK workflows.</p>

@@ -4,7 +4,7 @@ import { auth } from '$lib/server/auth';
 
 export const logout = form(async () => {
 	const { cookies } = getRequestEvent();
-	
+
 	auth.delete(cookies);
 
 	redirect(303, '/');

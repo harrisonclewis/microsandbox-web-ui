@@ -1,0 +1,15 @@
+html {
+    color:#000;
+    background:#fff;
+}
+
+a {
+    color:inherit;
+}
+
+@media (prefers-color-scheme:dark){
+    html {
+        color:#fff;
+        background:#000
+    }
+}
