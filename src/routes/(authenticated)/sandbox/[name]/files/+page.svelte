@@ -4,9 +4,12 @@
 	import { toCapacity } from "$lib";
 	import RemoteState from "$lib/components/remote-state.svelte";
 	import Table from "$lib/components/table.svelte";
+	import { SandboxStatus } from "$lib/types";
+	import { getSandbox } from "../data.remote";
 	import { listSandboxFiles, type SandboxFileEntryRow } from "./data.remote";
 
 	const sandboxName = $derived(page.params.name!);
+	const sandbox = $derived(getSandbox(sandboxName));
 
 	const pathQuery = $derived.by(() => {
 		const raw = page.url.searchParams.get("path");
@@ -20,7 +23,13 @@
 		return trimmed === "" ? undefined : raw;
 	});
 
-	const files = $derived(listSandboxFiles({ name: sandboxName, path: pathQuery }));
+	const filesRemote = $derived.by(() => {
+		if (sandbox.current?.data?.status !== SandboxStatus.Running) {
+			return null;
+		}
+
+		return listSandboxFiles({ name: sandboxName, path: pathQuery });
+	});
 
 	function guestBasename(guestPath: string): string {
 		const parts = guestPath.split("/").filter((s) => s.length > 0);
@@ -64,54 +73,66 @@
 
 <h2>Files</h2>
 
-<RemoteState remote={files}>
-	{#snippet children(remote)}
-		{#if remote.current?.data}
-			{@const listing = remote.current.data}
-			{@const segments = guestPathSegments(listing.path)}
+<RemoteState remote={sandbox}>
+	{#snippet children(sandboxRemote)}
+		{#if sandboxRemote.current?.data}
+			{#if sandboxRemote.current.data.status !== SandboxStatus.Running}
+				<p>Start the sandbox to open the filesystem.</p>
+			{:else if filesRemote}
+				<RemoteState remote={filesRemote}>
+					{#snippet children(remote)}
+						{#if remote.current?.data}
+							{@const listing = remote.current.data}
+							{@const segments = guestPathSegments(listing.path)}
 
-			<p>
-				Directory:
-				<a href={hrefForGuestPath("/")}>/</a>
-				{#each segments as seg, i}
-					{#if i > 0}<span>/</span>{/if}
-					<a href={hrefForGuestPath(seg.path)}>{seg.name}</a>
-				{/each}
-			</p>
+							<p>
+								Directory:
+								<a href={hrefForGuestPath("/")}>/</a>
+								{#each segments as seg, i}
+									{#if i > 0}<span>/</span>{/if}
+									<a href={hrefForGuestPath(seg.path)}>{seg.name}</a>
+								{/each}
+							</p>
 
-			{#snippet colName(entry: SandboxFileEntryRow)}
-				{#if entry.kind === "directory"}
-					<a href={hrefForGuestPath(entry.path)}>{guestBasename(entry.path)}</a>
-				{:else}
-					{guestBasename(entry.path)}
-				{/if}
-			{/snippet}
+							{#snippet colName(entry: SandboxFileEntryRow)}
+								{#if entry.kind === "directory"}
+									<a href={hrefForGuestPath(entry.path)}>{guestBasename(entry.path)}</a>
+								{:else}
+									{guestBasename(entry.path)}
+								{/if}
+							{/snippet}
 
-			<Table
-				columns={[
-					{ label: "Name", key: "path", render: colName },
-					{ label: "Type", key: "kind", value: (row) => row.kind },
-					{
-						label: "Size",
-						key: "size",
-						value: (row) => toCapacity(row.size, "bytes"),
-					},
-					{
-						label: "Modified",
-						key: "modified",
-						value: (row) =>
-							row.modified != null ? new Date(row.modified).toLocaleString() : "-",
-					},
-					{
-						label: "Mode",
-						key: "mode",
-						value: (row) => row.mode.toString(8),
-					},
-				]}
-				data={listing.entries}
-			/>
+							<Table
+								columns={[
+									{ label: "Name", key: "path", render: colName },
+									{ label: "Type", key: "kind", value: (row) => row.kind },
+									{
+										label: "Size",
+										key: "size",
+										value: (row) => toCapacity(row.size, "bytes"),
+									},
+									{
+										label: "Modified",
+										key: "modified",
+										value: (row) =>
+											row.modified != null ? new Date(row.modified).toLocaleString() : "-",
+									},
+									{
+										label: "Mode",
+										key: "mode",
+										value: (row) => row.mode.toString(8),
+									},
+								]}
+								data={listing.entries}
+							/>
+						{:else}
+							<p>No listing.</p>
+						{/if}
+					{/snippet}
+				</RemoteState>
+			{/if}
 		{:else}
-			<p>No listing.</p>
+			<p>Sandbox not found.</p>
 		{/if}
 	{/snippet}
 </RemoteState>

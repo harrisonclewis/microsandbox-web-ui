@@ -85,6 +85,11 @@
 						Files
 					</a>
 				</li>
+				<li>
+					<a href={resolve(`/sandbox/${encodeURIComponent(sandboxName)}/execution`)}>
+						Execution
+					</a>
+				</li>
 				{#if remote.current.data.status === SandboxStatus.Running}
 					<li>
 						<button type="button" onclick={onStop} disabled={stopSandbox.pending > 0 || sandbox.loading}>
