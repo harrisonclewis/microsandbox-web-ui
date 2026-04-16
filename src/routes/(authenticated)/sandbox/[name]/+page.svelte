@@ -1,48 +1,75 @@
 <script lang="ts">
+	import { resolve } from "$app/paths";
 	import { page } from "$app/state";
 	import { goto } from "$app/navigation";
 	import { toCapacity } from "$lib";
 	import RemoteState from "$lib/components/remote-state.svelte";
-    import { SandboxStatus } from "$lib/types";
-	import { getMetrics, getSandbox, killSandbox, removeSandbox, startSandbox, stopSandbox } from "./data.remote";
+	import { SandboxStatus } from "$lib/types";
+	import { toast, ToastType } from "$lib/client/toasts";
+	import { eventStream, type EventStreamHandle } from "$lib/client/stream.svelte";
+	import type { SandboxMetrics } from "microsandbox";
+	import { getSandbox, killSandbox, removeSandbox, startSandbox, stopSandbox } from "./data.remote";
 
 	const sandboxName = $derived(page.params.name!);
 	const sandbox = $derived(getSandbox(sandboxName));
-	const metrics = $derived(getMetrics(sandboxName));
-	let actionError = $state<string | null>(null);
 
-	async function runAction(action: () => Promise<unknown>): Promise<void> {
-		actionError = null;
+	let metricsStream = $state<EventStreamHandle<SandboxMetrics> | null>(null);
 
+	$effect(() => {
+		if (sandbox.current?.data?.status !== SandboxStatus.Running) {
+			metricsStream = null;
+			return;
+		}
+
+		const stream = eventStream<SandboxMetrics>(
+			resolve(`/sandbox/${encodeURIComponent(sandboxName)}/metrics/stream`),
+			{ onEnd: () => void sandbox.refresh(), onError: () => void sandbox.refresh() },
+		);
+
+		metricsStream = stream;
+
+		return () => stream.close();
+	});
+
+	async function runAction(action: () => Promise<unknown>, successMessage: string): Promise<void> {
 		try {
 			await action();
+
+			toast({ type: ToastType.Success, message: successMessage });
+
 			await sandbox.refresh();
-			await metrics.refresh();
 		} catch (error) {
-			actionError = error instanceof Error ? error.message : "Action failed.";
+			toast({
+				type: ToastType.Error,
+				message: error instanceof Error ? error.message : "Action failed.",
+			});
 		}
 	}
 
 	async function onStart(): Promise<void> {
-		await runAction(() => startSandbox(sandboxName));
+		await runAction(() => startSandbox(sandboxName), "Sandbox started");
 	}
 
 	async function onStop(): Promise<void> {
-		await runAction(() => stopSandbox(sandboxName));
+		await runAction(() => stopSandbox(sandboxName), "Sandbox stopped");
 	}
 
 	async function onKill(): Promise<void> {
-		await runAction(() => killSandbox(sandboxName));
+		await runAction(() => killSandbox(sandboxName), "Sandbox killed");
 	}
 
 	async function onRemove(): Promise<void> {
-		actionError = null;
-
 		try {
 			await removeSandbox(sandboxName);
+
+			toast({ type: ToastType.Success, message: "Sandbox removed" });
+
 			await goto("/dashboard");
 		} catch (error) {
-			actionError = error instanceof Error ? error.message : "Action failed.";
+			toast({
+				type: ToastType.Error,
+				message: error instanceof Error ? error.message : "Failed to remove sandbox.",
+			});
 		}
 	}
 </script>
@@ -57,13 +84,9 @@
 	<a href="/dashboard">Back to dashboard</a>
 </p>
 
-{#if actionError}
-	<p>{actionError}</p>
-{/if}
-
 <RemoteState remote={sandbox}>
 	{#snippet children(remote)}
-		{#if remote.current?.data}		
+		{#if remote.current?.data}
 			<ul>
 				{#if remote.current.data.status === SandboxStatus.Running}
 					<li>
@@ -100,40 +123,24 @@
 				{#if remote.current.data.status === SandboxStatus.Running}
 					<dt>Metrics</dt>
 					<dd>
-						{#if metrics.error}
-							<p>Failed to load metrics.</p>
-						{:else if metrics.loading}
+						{#if !metricsStream || metricsStream.state.kind === "connecting"}
 							<p>Loading metrics...</p>
-						{:else if metrics.current?.data}
+						{:else if metricsStream.state.kind === "error"}
+							<p>Failed to load metrics.</p>
+						{:else if metricsStream.state.kind === "ready"}
 							<ul>
-								<li>CPU: {metrics.current.data.cpuPercent}%</li>
-								<li>Memory: {toCapacity(metrics.current.data.memoryBytes)}</li>
-								<li>Memory Limit: {toCapacity(metrics.current.data.memoryLimitBytes)}</li>
-								<li>Disk Read: {toCapacity(metrics.current.data.diskReadBytes)}</li>
-								<li>Disk Write: {toCapacity(metrics.current.data.diskWriteBytes)}</li>
-								<li>Network RX: {toCapacity(metrics.current.data.netRxBytes)}</li>
-								<li>Network TX: {toCapacity(metrics.current.data.netTxBytes)}</li>
-								<li>Uptime: {Math.floor(metrics.current.data.uptimeMs / 1000)}s</li>
+								<li>CPU: {metricsStream.state.data.cpuPercent.toFixed(2)}%</li>
+								<li>Memory: {toCapacity(metricsStream.state.data.memoryBytes)}</li>
+								<li>Memory Limit: {toCapacity(metricsStream.state.data.memoryLimitBytes)}</li>
+								<li>Disk Read: {toCapacity(metricsStream.state.data.diskReadBytes)}</li>
+								<li>Disk Write: {toCapacity(metricsStream.state.data.diskWriteBytes)}</li>
+								<li>Network RX: {toCapacity(metricsStream.state.data.netRxBytes)}</li>
+								<li>Network TX: {toCapacity(metricsStream.state.data.netTxBytes)}</li>
+								<li>Uptime: {Math.floor(metricsStream.state.data.uptimeMs / 1000)}s</li>
 							</ul>
-						{:else}
-							<p>No metrics available.</p>
 						{/if}
 					</dd>
 				{/if}
-
-				<dt>Created</dt>
-				<dd>
-					{remote.current.data.createdAt != null
-						? new Date(remote.current.data.createdAt).toLocaleString()
-						: "-"}
-				</dd>
-
-				<dt>Updated</dt>
-				<dd>
-					{remote.current.data.updatedAt != null
-						? new Date(remote.current.data.updatedAt).toLocaleString()
-						: "-"}
-				</dd>
 
 				<dt>Image</dt>
 				<dd>{remote.current.data.config?.image?.Oci ?? "-"}</dd>
@@ -145,6 +152,20 @@
 				<dd>
 					{remote.current.data.config?.memory_mib != null
 						? toCapacity(remote.current.data.config.memory_mib, "mib")
+						: "-"}
+				</dd>
+
+				<dt>Updated</dt>
+				<dd>
+					{remote.current.data.updatedAt != null
+						? new Date(remote.current.data.updatedAt).toLocaleString()
+						: "-"}
+				</dd>
+
+				<dt>Created</dt>
+				<dd>
+					{remote.current.data.createdAt != null
+						? new Date(remote.current.data.createdAt).toLocaleString()
 						: "-"}
 				</dd>
 			</dl>

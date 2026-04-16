@@ -11,7 +11,15 @@ const AuthenticatedHomeRoute = '/dashboard';
 const GuestRouteId = '(guest)';
 const GuestHomeRoute = '/';
 
-function handleAuthentication(event: Parameters<Handle>[0]['event']): void {
+function routeIncludes(routeId: string | null, includes: string): boolean {
+	if (!routeId) {
+		return false;
+	}
+
+	return routeId.includes(includes);
+}
+
+function handleAuthRedirect(event: Parameters<Handle>[0]['event']): void {
 	const cookieValue = event.cookies.get(auth.cookieName);
 	const session = auth.verify(cookieValue);
 
@@ -47,15 +55,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return RateLimitedResponse;
 	}
 
-	handleAuthentication(event);
+	handleAuthRedirect(event);
 
 	return resolve(event);
 };
-
-function routeIncludes(routeId: string | null, includes: string): boolean {
-	if (!routeId) {
-		return false;
-	}
-
-	return routeId.includes(includes);
-}

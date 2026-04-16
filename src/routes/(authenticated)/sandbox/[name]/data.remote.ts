@@ -116,28 +116,3 @@ export const removeSandbox = command(sandboxNameSchema, async (name) => {
 
 	return { data: null };
 });
-
-export const getMetrics = query(v.pipe(v.string(), v.nonEmpty(), v.maxLength(128)), async (name) => {
-	const normalizedName = normalizeName(name);
-	let sandbox: SandboxHandle | null = null;
-
-	try {
-		sandbox = await msb().Sandbox.get(normalizedName);
-	} catch {
-		return { data: null };
-	}
-
-	if (!sandbox) {
-		return { data: null };
-	}
-
-	if (sandbox.status !== "running") {
-		return { data: null };
-	}
-
-	try {
-		return { data: await sandbox.metrics() };
-	} catch {
-		return { data: null };
-	}
-});
