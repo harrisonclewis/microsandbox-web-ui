@@ -1,4 +1,4 @@
-import type { SandboxInfo as MicrosandboxInfo } from "microsandbox";
+import type { SandboxHandle, SandboxInfo as MicrosandboxInfo } from "microsandbox";
 
 type Nullable<T> = T | null;
 
@@ -104,9 +104,12 @@ export function parseSandboxInfoConfig(configJson: string): SandboxInfoConfig | 
 	}
 }
 
-export function toSandboxInfoWithConfig(sandbox: MicrosandboxInfo): SandboxInfoWithConfig {
+export function toSandboxInfoWithConfig(sandbox: MicrosandboxInfo|SandboxHandle): SandboxInfoWithConfig {
 	return {
-		...sandbox,
+		name: sandbox.name,
+		status: sandbox.status,
+		createdAt: sandbox.createdAt ?? undefined,
+		updatedAt: sandbox.updatedAt ?? undefined,
 		config: parseSandboxInfoConfig(sandbox.configJson),
 	};
 }

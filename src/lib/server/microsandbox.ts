@@ -3,23 +3,27 @@ import type * as Microsandbox from 'microsandbox';
 
 type MicrosandboxModule = typeof Microsandbox;
 
-let msb: MicrosandboxModule | null | undefined;
+let msbModule: MicrosandboxModule | undefined;
 
 /**
  * Load native microsandbox binding (CJS). Returns null if load fails (unsupported platform, missing binary).
  */
-export function getMsb(): MicrosandboxModule | null {
-	if (msb !== undefined) {
-		return msb;
+export function msb(): MicrosandboxModule {
+	if (msbModule !== undefined) {
+		return msbModule;
 	}
 
 	try {
 		const require = createRequire(import.meta.url);
 
-		msb = require('microsandbox') as MicrosandboxModule;
-	} catch {
-		msb = null;
-	}
+		msbModule = require('microsandbox') as MicrosandboxModule;
 
-	return msb;
+		if (!msbModule) {
+			throw new Error("Microsandbox not initialized");
+		}
+
+		return msbModule;
+	} catch {
+		throw new Error("Microsandbox not initialized");
+	}
 }
