@@ -1,126 +1,99 @@
-# Microsandbox Web UI
+<div align="center">
+    <a href="./#gh-dark-mode-only" target="_blank" align="center">
+        <img width="35%" src="\src\lib\assets\microsandbox-gh-banner-dark.png" alt="microsandbox-banner-xl-dark">
+    </a>
+</div>
 
-A SvelteKit dashboard for managing and observing [Microsandbox](https://github.com/superradcompany/microsandbox) — the self-hosted platform for running untrusted code in hardware-isolated microVMs.
+<div align="center">
+    <a href="./#gh-light-mode-only" target="_blank">
+        <img width="35%" src="\src\lib\assets\microsandbox-gh-banner-light.png" alt="microsandbox-banner-xl">
+    </a>
+</div>
 
-This project provides a browser interface on top of the [`microsandbox`](https://www.npmjs.com/package/microsandbox) Node SDK and the local OCI metadata database, giving you a read/write view of sandboxes, images, layers, snapshots, volumes, and runtime activity.
+<br />
 
----
+<div align="center"><b>——&nbsp;&nbsp;&nbsp;every agent deserves its own computer&nbsp;&nbsp;&nbsp;——</b></div>
 
-## Features
+<br />
+<br />
 
-- **Dashboard** — live view of sandbox runtime, CPU, RAM, and image usage pulled from the Microsandbox SDK.
-- **Sandboxes** — list, inspect, create, start, stop, and remove sandboxes; parse and display sandbox config (CPU, memory, image, network, patches).
-- **Images / Layers / Manifests / Configs** — browse the local OCI metadata with pagination and detail pages, backed by the Microsandbox SQLite/libsql store.
-- **Snapshots & Volumes** — view, create, and remove persistent state.
-- **Activity** — recent sandbox lifecycle events.
-- **Settings** — install/manage the `msb` runtime + `libkrunfw` on the server, plus database diagnostics.
-- **Auth** — token-based login, rate limiting, and encryption helpers for the admin surface.
+<div align='center'>
+  <img src="https://img.shields.io/badge/SvelteKit-2.x-ff3e00?style=for-the-badge&logo=svelte" alt="SvelteKit">
+  <img src="https://img.shields.io/badge/TypeScript-Ready-3178c6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Microsandbox-SDK-A770EF?style=for-the-badge" alt="Microsandbox SDK">
+</div>
 
----
+<br />
 
-## Requirements
+**Microsandbox Web UI** is an early-stage, UI-first control plane for microsandbox. The long-term goal is full lifecycle management from a single authenticated web interface, so teams do not need to interact with microsandbox directly.
 
-| Requirement | Notes |
-|---|---|
-| **Node.js 20+** or **[Bun](https://bun.sh)** | Bun is recommended (repo ships a `bun.lock`). |
-| **Microsandbox host** | Runs **on the server side** only. Supported: **Linux x64/arm64** and **macOS Apple Silicon**. The SDK is **not supported on Windows hosts** — use WSL2, a Linux VM, or a remote Linux server. |
+##
 
-> The SvelteKit frontend will develop fine on any OS, but server-side SDK calls (install, start, stop, metrics) require a supported host.
+- <img height="14" src="https://octicons-col.vercel.app/shield-lock/A770EF"> **Authentication & Sessions**: Access-token login, signed HTTP-only cookies, and defensive auth checks.
+- <img height="14" src="https://octicons-col.vercel.app/table/A770EF"> **Sandbox Inventory**: Unified listing for name, status, image, CPU, memory, and lifecycle metadata.
+- <img height="14" src="https://octicons-col.vercel.app/play/A770EF"> **Lifecycle Actions**: Create, start, stop, restart, and remove sandboxes from the UI.
+- <img height="14" src="https://octicons-col.vercel.app/terminal/A770EF"> **Exec & Session Control**: Run commands, attach terminals, and manage running workloads.
+- <img height="14" src="https://octicons-col.vercel.app/sliders/A770EF"> **Configuration Management**: Edit image, compute, mounts, env vars, networking, and policy settings.
+- <img height="14" src="https://octicons-col.vercel.app/key/A770EF"> **Secrets & Security Policies**: Manage secrets, egress rules, and sandbox-level protections.
+- <img height="14" src="https://octicons-col.vercel.app/database/A770EF"> **Volumes & Persistence**: Attach data volumes and manage persistent workspace state.
+- <img height="14" src="https://octicons-col.vercel.app/package/A770EF"> **Image & Registry Operations**: Pull, inspect, and manage OCI images used by sandboxes.
+- <img height="14" src="https://octicons-col.vercel.app/graph/A770EF"> **Observability**: Surface logs, metrics, and runtime health in one place.
+- <img height="14" src="https://octicons-col.vercel.app/history/A770EF"> **Auditability**: Track operational actions for safer team workflows.
+- <img height="14" src="https://octicons-col.vercel.app/plug/A770EF"> **Automation & Integrations**: Connect with agent and platform workflows through a stable UI layer.
+- <img height="14" src="https://octicons-col.vercel.app/beaker/A770EF"> **Current Stage**: Early-stage build with core auth and sandbox visibility available now.
 
----
 
-## Related projects
+<br />
 
-- [Microsandbox](https://github.com/superradcompany/microsandbox) — the core runtime this UI drives.
-- [`microsandbox` npm package](https://www.npmjs.com/package/microsandbox) — the Node SDK used by this server.
+## <a href="./#gh-dark-mode-only" target="_blank"><img height="13" src="https://octicons-col.vercel.app/rocket/ffffff" alt="rocket-dark"></a><a href="./#gh-light-mode-only" target="_blank"><img height="13" src="https://octicons-col.vercel.app/rocket/000000" alt="rocket"></a>&nbsp;&nbsp;Getting Started
 
----
+#### <img height="14" src="https://octicons-col.vercel.app/move-to-bottom/A770EF">&nbsp;&nbsp;Install Dependencies
 
-## Installation
+> ```sh
+> npm install
+> ```
 
-```sh
-# 1. Clone
-git clone https://github.com/superradcompany/microsandbox-web-ui.git
-cd microsandbox-web-ui
+#### <img height="14" src="https://octicons-col.vercel.app/download/A770EF">&nbsp;&nbsp;Configure Environment
 
-# 2. Install dependencies
-bun install
-# or
-npm install
-```
+> ```sh
+> cp .env.example .env
+> ```
+>
+> Set `ACCESS_TOKEN` and `ENCRYPTION_KEY` in `.env` before starting the app.
 
-### Environment variables
+#### <img height="14" src="https://octicons-col.vercel.app/play/A770EF">&nbsp;&nbsp;Run the App
 
-Create a `.env` file in the project root:
+> ```sh
+> npm run dev
+> ```
 
-```env
-# Required — browser login token. Use a long random string.
-ACCESS_TOKEN="replace-with-a-long-random-secret"
+##
 
-# Required — path to the Microsandbox SQLite database. Found in .microsandbox/db/msb.db
-# Example for a local file:
-DATABASE_URL="file:./example.db"
+> **Requirements**: Node.js 20+ and a compatible microsandbox runtime environment.<br />
+> **Warning**: This project is early-stage. The feature surface is expanding toward full lifecycle management.
 
-# Required — 32-byte key used to encrypt stored secrets.
-ENCRYPTION_KEY="replace-with-a-32-byte-random-hex"
+<br />
 
-# Optional — enables the Settings → SDK page that can install
-# `msb` + `libkrunfw` on the server. Use a separate long random secret.
-MSB_ADMIN_INSTALL_TOKEN="replace-with-another-long-random-secret"
-```
+<a href="https://docs.microsandbox.dev/sdk/overview"><img src="https://img.shields.io/badge/Microsandbox_SDK_Docs-%E2%86%92-A770EF?style=flat-square&labelColor=2b2b2b" alt="Microsandbox SDK Docs"></a>
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `ACCESS_TOKEN` | Yes | Shared secret used by the login form. |
-| `DATABASE_URL` | Yes | libsql/SQLite URL for the Microsandbox metadata DB. |
-| `ENCRYPTION_KEY` | Yes | Key used by `src/lib/server/auth.ts` for at-rest encryption. |
-| `MSB_ADMIN_INSTALL_TOKEN` | Optional | Unlocks the **Settings → SDK** install form. |
+## <a href="./#gh-dark-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/book/ffffff" alt="docs-dark"></a><a href="./#gh-light-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/book/000000" alt="docs"></a>&nbsp;&nbsp;Documentation
 
----
+For runtime behavior and API details, see [microsandbox documentation](https://docs.microsandbox.dev). For framework details, see [SvelteKit documentation](https://svelte.dev/docs/kit/introduction).
 
-## Running
+<br />
 
-### Development
+## <a href="./#gh-dark-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/gear/ffffff" alt="contributing-dark"></a><a href="./#gh-light-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/gear/000000" alt="contributing"></a>&nbsp;&nbsp;Contributing
 
-```sh
-bun run dev
-# or: npm run dev
-```
+Contributions are welcome. Prioritize small, focused changes that improve authentication safety, dashboard clarity, and microsandbox integration quality.
 
-Open [http://localhost:5173](http://localhost:5173), log in with your `ACCESS_TOKEN`, and the dashboard will connect to the Microsandbox SDK running on the same host.
+<br />
 
-### Production build
+## <a href="./#gh-dark-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/law/ffffff" alt="license-dark"></a><a href="./#gh-light-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/law/000000" alt="license"></a>&nbsp;&nbsp;License
 
-```sh
-bun run build
-bun run preview
-```
+This project is licensed under the [Apache License 2.0](./LICENSE).
 
-You may need a [SvelteKit adapter](https://svelte.dev/docs/kit/adapters) for your deployment target.
+<br />
 
-### Install the Microsandbox runtime
+## <a href="./#gh-dark-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/heart/ffffff" alt="acknowledgements-dark"></a><a href="./#gh-light-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/heart/000000" alt="acknowledgements"></a>&nbsp;&nbsp;Acknowledgements
 
-If `msb` / `libkrunfw` are not yet present on the server:
-
-1. Start the app and log in.
-2. Go to **Settings → SDK**.
-3. Enter your `MSB_ADMIN_INSTALL_TOKEN` and submit. This triggers `install()` on the server and downloads the runtime (requires network access on the host).
-
-Alternatively, follow the instructions in the [Microsandbox repo](https://github.com/superradcompany/microsandbox) to install `msb` manually.
-
----
-
-## Tech stack
-
-- [SvelteKit 2](https://svelte.dev/docs/kit) + [Svelte 5](https://svelte.dev)
-- [Vite 8](https://vite.dev)
-- [`microsandbox`](https://www.npmjs.com/package/microsandbox) SDK
-- [Drizzle ORM](https://orm.drizzle.team) on [libsql](https://github.com/tursodatabase/libsql)
-- [Zod](https://zod.dev) + [Valibot](https://valibot.dev) for validation
-- TypeScript
-
----
-
-## License
-
-See the [Microsandbox](https://github.com/superradcompany/microsandbox) project for upstream licensing. This UI is distributed under the same terms unless stated otherwise in this repository.
+Thanks to the microsandbox maintainers and ecosystem for making local microVM workflows easier to adopt in developer tooling.
