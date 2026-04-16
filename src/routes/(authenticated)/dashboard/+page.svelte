@@ -2,6 +2,7 @@
 	import { toCapacity } from "$lib";
 	import RemoteState from "$lib/components/remote-state.svelte";
 	import Table from "$lib/components/table.svelte";
+	import { SandboxStatus, type SandboxInfoWithConfig } from "$lib/types";
 	import { getSandboxes } from "./data.remote";
 
 	const sandboxes = getSandboxes();
@@ -20,11 +21,27 @@
 	</li>
 </ul>
 
+{#snippet sandboxName(sandbox: SandboxInfoWithConfig)}
+	<a href={`/sandbox/${sandbox.name}`}>{sandbox.name}</a>
+{/snippet}
+
+{#snippet sandboxState(sandbox: SandboxInfoWithConfig)}
+	<span class={`badge badge-${sandbox.status}`}>{sandbox.status}</span>
+{/snippet}
+
+{#snippet sandboxAction(sandbox: SandboxInfoWithConfig)}
+	{#if sandbox.status === SandboxStatus.Stopped}
+		<button type="button" class="action-button">Start</button>
+	{:else if sandbox.status === SandboxStatus.Running}
+		<button type="button" class="action-button action-danger">Stop</button>
+	{/if}
+{/snippet}
+
 <RemoteState remote={sandboxes}>
 	{#snippet children(remote)}
 		<Table 
 			columns={[
-				{ label: "Name", key: "name" },
+				{ label: "Name", key: "name", render: sandboxName },
 				{ 
 					label: "CPUs", 
 					key: "config.cpus", 
@@ -35,12 +52,9 @@
 					key: "config.memory_mib",
 					value: (row) => row.config?.memory_mib != null ? toCapacity(row.config.memory_mib, "mib") : "-",
 				},
-				{ 
-					label: "Image", 
-					key: "config.image", 
-					value: (row) => row.config?.image?.Oci ?? "-" 
-				},
-				{ label: "Status", key: "status" },
+				{ label: "State", key: "status", render: sandboxState },
+				{ label: "Created", key: "createdAt", value: (row) => row.createdAt != null ? new Date(row.createdAt).toLocaleString() : "-" },
+				{ label: "", key: "action", render: sandboxAction },
 			]} 
 			data={remote.current?.data ?? []} 
 		/>

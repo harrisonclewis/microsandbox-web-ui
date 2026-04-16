@@ -11,6 +11,31 @@ table {
     text-align: left;
 }
 
+.badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    border: 1px solid currentColor;
+}
+
+.badge-green, .badge-running {
+    color: #0b7a3b;
+}
+
+.badge-red, .badge-stopped {
+    color: #a00000;
+}
+
+.badge-yellow, .badge-crashed {
+    color: #ff8800;
+}
+
+.badge-blue, .badge-draining {
+    color: #005a9e;
+}
+
 @media (prefers-color-scheme:dark){
     html {
         color:#fff;

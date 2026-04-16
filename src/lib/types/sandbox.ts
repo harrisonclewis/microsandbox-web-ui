@@ -6,6 +6,13 @@ type TaggedValue<TTag extends string, TValue = string> = {
 	[K in TTag]: TValue;
 };
 
+export const SandboxStatus = {
+    Running: "running",
+    Stopped: "stopped",
+    Crashed: "crashed",
+    Draining: "draining"
+} as const;
+
 export type SandboxInfoConfig = {
 	name: string;
 	image: TaggedValue<"Oci">;
