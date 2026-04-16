@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { logout } from './actions.remote.ts';
+	import { resolve } from "$app/paths";
+	import { logout } from "./actions.remote.ts";
 
 	let { children } = $props();
 </script>
@@ -7,7 +8,7 @@
 <nav>
 	<ul>
 		<li>
-			<a href="/dashboard">Dashboard</a>
+			<a href={resolve("/dashboard")}>Dashboard</a>
 		</li>
 		<li>
 			<form {...logout}>

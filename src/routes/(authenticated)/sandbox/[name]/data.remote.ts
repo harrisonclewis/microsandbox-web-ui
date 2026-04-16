@@ -1,23 +1,14 @@
 import { command, query } from "$app/server";
+import { normalizeSandboxName } from "$lib/server/sandbox-name";
 import { msb } from "$lib/server/microsandbox";
 import { toSandboxInfoWithConfig } from "$lib/types";
 import * as v from "valibot";
 import type { SandboxHandle } from "microsandbox";
 
-function normalizeName(name: string): string {
-	const normalizedName = name.trim();
-
-	if (!normalizedName) {
-		throw new Error("Invalid sandbox name");
-	}
-
-	return normalizedName;
-}
-
 const sandboxNameSchema = v.pipe(v.string(), v.nonEmpty(), v.maxLength(128));
 
 export const getSandbox = query(sandboxNameSchema, async (name) => {
-	const normalizedName = normalizeName(name);
+	const normalizedName = normalizeSandboxName(name);
 	let sandbox: SandboxHandle | null = null;
 
 	try {
@@ -36,7 +27,7 @@ export const getSandbox = query(sandboxNameSchema, async (name) => {
 });
 
 export const startSandbox = command(sandboxNameSchema, async (name) => {
-	const normalizedName = normalizeName(name);
+	const normalizedName = normalizeSandboxName(name);
 	const sandbox = await msb().Sandbox.get(normalizedName);
 
 	if (!sandbox) {
@@ -67,7 +58,7 @@ export const startSandbox = command(sandboxNameSchema, async (name) => {
 });
 
 export const stopSandbox = command(sandboxNameSchema, async (name) => {
-	const normalizedName = normalizeName(name);
+	const normalizedName = normalizeSandboxName(name);
 	const sandbox = await msb().Sandbox.get(normalizedName);
 
 	if (!sandbox) {
@@ -84,7 +75,7 @@ export const stopSandbox = command(sandboxNameSchema, async (name) => {
 });
 
 export const killSandbox = command(sandboxNameSchema, async (name) => {
-	const normalizedName = normalizeName(name);
+	const normalizedName = normalizeSandboxName(name);
 	const sandbox = await msb().Sandbox.get(normalizedName);
 
 	if (!sandbox) {
@@ -101,7 +92,7 @@ export const killSandbox = command(sandboxNameSchema, async (name) => {
 });
 
 export const removeSandbox = command(sandboxNameSchema, async (name) => {
-	const normalizedName = normalizeName(name);
+	const normalizedName = normalizeSandboxName(name);
 	const sandbox = await msb().Sandbox.get(normalizedName);
 
 	if (!sandbox) {

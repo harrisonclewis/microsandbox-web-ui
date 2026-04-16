@@ -1,24 +1,15 @@
+import { normalizeSandboxName } from "$lib/server/sandbox-name";
 import { msb } from "$lib/server/microsandbox";
 import type { Sandbox, SandboxHandle } from "microsandbox";
 import type { RequestHandler } from "./$types";
 
 const METRICS_INTERVAL_MS = 2000;
 
-function normalizeName(raw: string | undefined): string {
-	const normalized = (raw ?? "").trim();
-
-	if (!normalized) {
-		throw new Error("Invalid sandbox name");
-	}
-
-	return normalized;
-}
-
 export const GET: RequestHandler = async ({ params, request }) => {
 	let name: string;
 
 	try {
-		name = normalizeName(params.name);
+		name = normalizeSandboxName(params.name ?? "");
 	} catch {
 		return new Response("Invalid sandbox name", { status: 400 });
 	}

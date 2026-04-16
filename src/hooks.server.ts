@@ -38,9 +38,18 @@ function handleAuthRedirect(event: Parameters<Handle>[0]['event']): void {
 	}
 }
 
+function getClientAddressForRateLimit(event: Parameters<Handle>[0]['event']): string {
+	try {
+		return event.getClientAddress();
+	} catch {
+		// Vite dev (and some proxies) cannot resolve a client address; avoid 500s.
+		return "unknown";
+	}
+}
+
 function handleGlobalRateLimit(event: Parameters<Handle>[0]['event']): Response | undefined {
-	const clientAddress = event.getClientAddress();
-	
+	const clientAddress = getClientAddressForRateLimit(event);
+
 	if (GlobalRateLimiter.isLimited(clientAddress)) {
 		return new Response('Too many attempts. Try again later.', { status: 429 });
 	}
