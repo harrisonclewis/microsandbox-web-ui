@@ -8,6 +8,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
+	<title>Microsandbox Web UI</title>
 </svelte:head>
 
 <Toasts />

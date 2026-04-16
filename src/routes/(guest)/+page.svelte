@@ -2,10 +2,6 @@
     import { authenticate } from './actions.remote.ts';
 </script>
 
-<svelte:head>
-    <title>Microsandbox Web UI</title>
-</svelte:head>
-
 <form {...authenticate}>
     <h2>Login</h2>
     {#if authenticate.fields.allIssues()}

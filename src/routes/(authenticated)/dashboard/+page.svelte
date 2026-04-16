@@ -7,9 +7,6 @@
 
 	const sandboxes = getSandboxes();
 </script>
-<svelte:head>
-	<title>Dashboard</title>
-</svelte:head>
 
 <h2>Dashboard</h2>
 

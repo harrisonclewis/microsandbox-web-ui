@@ -74,15 +74,7 @@
 	}
 </script>
 
-<svelte:head>
-	<title>Sandbox {page.params.name}</title>
-</svelte:head>
-
 <h2>Sandbox</h2>
-
-<p>
-	<a href="/dashboard">Back to dashboard</a>
-</p>
 
 <RemoteState remote={sandbox}>
 	{#snippet children(remote)}
