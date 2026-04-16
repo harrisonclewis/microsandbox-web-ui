@@ -73,12 +73,11 @@
 > **Warning**: This project is early-stage. The feature surface is expanding toward full lifecycle management.
 
 <br />
-
-<a href="https://docs.microsandbox.dev/sdk/overview"><img src="https://img.shields.io/badge/Microsandbox_SDK_Docs-%E2%86%92-A770EF?style=flat-square&labelColor=2b2b2b" alt="Microsandbox SDK Docs"></a>
-
 ## <a href="./#gh-dark-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/book/ffffff" alt="docs-dark"></a><a href="./#gh-light-mode-only" target="_blank"><img height="18" src="https://octicons-col.vercel.app/book/000000" alt="docs"></a>&nbsp;&nbsp;Documentation
 
 For runtime behavior and API details, see [microsandbox documentation](https://docs.microsandbox.dev). For framework details, see [SvelteKit documentation](https://svelte.dev/docs/kit/introduction).
+
+<a href="https://docs.microsandbox.dev/sdk/overview"><img src="https://img.shields.io/badge/Microsandbox_SDK_Docs-%E2%86%92-A770EF?style=flat-square&labelColor=2b2b2b" alt="Microsandbox SDK Docs"></a>
 
 <br />
 
